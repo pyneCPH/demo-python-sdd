@@ -1,16 +1,16 @@
-## Spec-Linear Workflow
+## Spec-Linear Workflow (MANDATORY)
 
 This project uses spec-linear for spec-driven development with Linear integration.
 
-### Commands
+**IMPORTANT: When assigned a feature, bug fix, or any implementation task, you MUST follow the speclinear workflow. Do NOT implement code directly. Execute these commands strictly in order:**
 
-| Command | Purpose |
-|---------|---------|
-| `/speclinear.constitute` | Establish project governing principles (constitution) |
-| `/speclinear.specify` | Create feature branch + parent Linear issue + spec sub-issue |
-| `/speclinear.clarify` | Clarify ambiguities in the spec via Q&A |
-| `/speclinear.plan` | Generate technical plan + task sub-issues |
-| `/speclinear.implement` | Execute tasks and update Linear statuses |
+1. `/speclinear.specify` — Create feature branch + parent Linear issue + spec sub-issue
+2. `/speclinear.clarify` — Read any clarification responses and incorporate into the spec
+3. `/speclinear.plan` — Generate technical plan + task sub-issues in Linear
+4. `/speclinear.implement` — Execute tasks phase by phase, updating Linear statuses
+5. `/speclinear.review-close` — Commit changes, create PR, run review agents, and close the feature
+
+**Never skip steps. Never implement code without first creating a spec and plan.**
 
 ### Linear Context
 

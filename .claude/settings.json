@@ -1,0 +1,25 @@
+{
+    "enabledPlugins": {
+        "python@pyne-tools": true,
+        "astral@pyne-tools": true,
+        "context7@pyne-tools": true,
+        "speclinear@pyne-tools": true,
+        "pr-review-toolkit@pyne-tools": true
+    },
+    "extraKnownMarketplaces": {
+        "company-tools": {
+            "source": {
+                "source": "github",
+                "repo": "pyneCPH/marketplace"
+            }
+        }
+    },
+    "permissions": {
+        "deny": [
+            "Read(.env)",
+            "Read(.env.*)",
+            "Bash(git push --force*)",
+            "Bash(git push -f*)"
+        ]
+    }
+}
