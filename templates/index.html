@@ -4,15 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather</title>
+    <script>
+        (function() {
+            var theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #fff;
+            --card-shadow: rgba(0, 0, 0, 0.1);
+            --text-primary: #111;
+            --text-secondary: #333;
+            --text-muted: #555;
+            --text-condition: #666;
+            --text-label: #999;
+            --border-color: #ddd;
+            --border-light: #eee;
+            --select-bg: #fff;
+            --select-color: #333;
+            --toggle-bg: #fff;
+            --toggle-color: #666;
+            --toggle-active-bg: #333;
+            --toggle-active-color: #fff;
+            --error-color: #c0392b;
+            --error-bg: #fff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --card-shadow: rgba(0, 0, 0, 0.3);
+            --text-primary: #e0e0e0;
+            --text-secondary: #c0c0c0;
+            --text-muted: #a0a0a0;
+            --text-condition: #b0b0b0;
+            --text-label: #888;
+            --border-color: #2a2a4a;
+            --border-light: #2a2a4a;
+            --select-bg: #16213e;
+            --select-color: #e0e0e0;
+            --toggle-bg: #16213e;
+            --toggle-color: #a0a0a0;
+            --toggle-active-bg: #4ea7fc;
+            --toggle-active-color: #fff;
+            --error-color: #e74c3c;
+            --error-bg: #16213e;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: "JetBrains Mono", "Courier New", Courier, monospace;
-            background: #f0f2f5;
+            background: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -34,10 +84,10 @@
             font-family: inherit;
             font-size: 1.1rem;
             padding: 0.5rem 1rem;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            background: #fff;
-            color: #333;
+            background: var(--select-bg);
+            color: var(--select-color);
             cursor: pointer;
             min-width: 250px;
         }
@@ -57,16 +107,16 @@
 
         .toggle-group span.toggle-label {
             font-size: 0.8rem;
-            color: #999;
+            color: var(--text-label);
             margin-right: 0.25rem;
         }
 
         .toggle-btn {
             font-size: 0.85rem;
             padding: 0.3rem 0.65rem;
-            border: 1px solid #ddd;
-            background: #fff;
-            color: #666;
+            border: 1px solid var(--border-color);
+            background: var(--toggle-bg);
+            color: var(--toggle-color);
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
         }
@@ -80,9 +130,9 @@
         }
 
         .toggle-btn.active {
-            background: #333;
-            color: #fff;
-            border-color: #333;
+            background: var(--toggle-active-bg);
+            color: var(--toggle-active-color);
+            border-color: var(--toggle-active-bg);
         }
 
         .forecast-row {
@@ -93,9 +143,9 @@
         }
 
         .day-card {
-            background: #fff;
+            background: var(--card-bg);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px var(--card-shadow);
             padding: 1.5rem 1.25rem;
             flex: 1 1 160px;
             max-width: 200px;
@@ -106,7 +156,7 @@
         .day-label {
             font-size: 0.85rem;
             font-weight: 600;
-            color: #555;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 0.75rem;
@@ -115,7 +165,7 @@
         .day-temp {
             font-size: 1.5rem;
             font-weight: 300;
-            color: #111;
+            color: var(--text-primary);
             margin-bottom: 0.25rem;
         }
 
@@ -127,12 +177,12 @@
 
         .day-condition {
             font-size: 0.95rem;
-            color: #666;
+            color: var(--text-condition);
             margin-bottom: 1rem;
         }
 
         .day-details {
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border-light);
             padding-top: 0.75rem;
         }
 
@@ -144,27 +194,27 @@
         }
 
         .day-detail-label {
-            color: #999;
+            color: var(--text-label);
         }
 
         .day-detail-value {
-            color: #333;
+            color: var(--text-secondary);
         }
 
         .loading {
-            color: #999;
+            color: var(--text-label);
             font-size: 1rem;
             padding: 2rem;
         }
 
         .error {
-            color: #c0392b;
+            color: var(--error-color);
             font-size: 1rem;
             line-height: 1.5;
             padding: 2rem;
-            background: #fff;
+            background: var(--error-bg);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px var(--card-shadow);
         }
     </style>
 </head>
@@ -186,6 +236,11 @@
                 <button class="toggle-btn active" data-unit="wind" data-value="kmh">km/h</button>
                 <button class="toggle-btn" data-unit="wind" data-value="mph">mph</button>
             </div>
+            <div class="toggle-group">
+                <span class="toggle-label">Theme</span>
+                <button class="toggle-btn active" data-unit="theme" data-value="light">Light</button>
+                <button class="toggle-btn" data-unit="theme" data-value="dark">Dark</button>
+            </div>
         </div>
         <div id="forecast-area">
             <p class="loading">Loading weather data...</p>
@@ -199,10 +254,12 @@
 
         var tempUnit = localStorage.getItem("tempUnit") || "C";
         var windUnit = localStorage.getItem("windUnit") || "kmh";
+        var currentTheme = localStorage.getItem("theme") || "light";
 
         function initToggles() {
             var tempBtns = document.querySelectorAll('[data-unit="temp"]');
             var windBtns = document.querySelectorAll('[data-unit="wind"]');
+            var themeBtns = document.querySelectorAll('[data-unit="theme"]');
             for (var i = 0; i < tempBtns.length; i++) {
                 if (tempBtns[i].getAttribute("data-value") === tempUnit) {
                     tempBtns[i].classList.add("active");
@@ -217,6 +274,23 @@
                     windBtns[i].classList.remove("active");
                 }
             }
+            for (var i = 0; i < themeBtns.length; i++) {
+                if (themeBtns[i].getAttribute("data-value") === currentTheme) {
+                    themeBtns[i].classList.add("active");
+                } else {
+                    themeBtns[i].classList.remove("active");
+                }
+            }
+        }
+
+        function applyTheme(theme) {
+            currentTheme = theme;
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            } else {
+                document.documentElement.removeAttribute("data-theme");
+            }
+            localStorage.setItem("theme", theme);
         }
 
         document.querySelector(".unit-toggles").addEventListener("click", function(e) {
@@ -227,9 +301,11 @@
             if (unit === "temp") {
                 tempUnit = value;
                 localStorage.setItem("tempUnit", value);
-            } else {
+            } else if (unit === "wind") {
                 windUnit = value;
                 localStorage.setItem("windUnit", value);
+            } else if (unit === "theme") {
+                applyTheme(value);
             }
             initToggles();
             if (rawForecasts) {

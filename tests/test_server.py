@@ -185,6 +185,53 @@ def test_api_forecast_missing_params() -> None:
     assert "error" in data
 
 
+def test_dark_mode_toggle_present() -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/")
+    thread.join()
+    server.server_close()
+
+    html = body.decode()
+    assert 'data-unit="theme"' in html
+    assert 'data-value="light"' in html
+    assert 'data-value="dark"' in html
+
+
+def test_dark_mode_css_variables() -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/")
+    thread.join()
+    server.server_close()
+
+    html = body.decode()
+    assert "--bg-color" in html
+    assert "--card-bg" in html
+    assert "--text-primary" in html
+    assert '[data-theme="dark"]' in html
+
+
+def test_dark_mode_early_theme_script() -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/")
+    thread.join()
+    server.server_close()
+
+    html = body.decode()
+    head_end = html.index("</head>")
+    head_section = html[:head_end]
+    assert "localStorage" in head_section
+    assert "data-theme" in head_section
+
+
 @patch("server.get_forecast", return_value=None)
 def test_api_forecast_service_failure(mock_forecast: object) -> None:
     server = _make_server()
