@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "JetBrains Mono", "Courier New", Courier, monospace;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .city-selector {
+            margin-bottom: 1rem;
+        }
+
+        .city-selector select {
+            font-family: inherit;
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            color: #333;
+            cursor: pointer;
+            min-width: 250px;
+        }
+
+        .unit-toggles {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .toggle-group span.toggle-label {
+            font-size: 0.8rem;
+            color: #999;
+            margin-right: 0.25rem;
+        }
+
+        .toggle-btn {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.65rem;
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #666;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .toggle-btn:first-of-type {
+            border-radius: 6px 0 0 6px;
+        }
+
+        .toggle-btn:last-of-type {
+            border-radius: 0 6px 6px 0;
+        }
+
+        .toggle-btn.active {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        .forecast-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .day-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 1.25rem;
+            flex: 1 1 160px;
+            max-width: 200px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .day-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .day-temp {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: #111;
+            margin-bottom: 0.25rem;
+        }
+
+        .day-emoji {
+            font-size: 2rem;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .day-condition {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .day-details {
+            border-top: 1px solid #eee;
+            padding-top: 0.75rem;
+        }
+
+        .day-detail {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .day-detail-label {
+            color: #999;
+        }
+
+        .day-detail-value {
+            color: #333;
+        }
+
+        .loading {
+            color: #999;
+            font-size: 1rem;
+            padding: 2rem;
+        }
+
+        .error {
+            color: #c0392b;
+            font-size: 1rem;
+            line-height: 1.5;
+            padding: 2rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="city-selector">
+            <select id="city-select" disabled>
+                <option>Loading cities...</option>
+            </select>
+        </div>
+        <div class="unit-toggles">
+            <div class="toggle-group">
+                <span class="toggle-label">Temp</span>
+                <button class="toggle-btn active" data-unit="temp" data-value="C">&deg;C</button>
+                <button class="toggle-btn" data-unit="temp" data-value="F">&deg;F</button>
+            </div>
+            <div class="toggle-group">
+                <span class="toggle-label">Wind</span>
+                <button class="toggle-btn active" data-unit="wind" data-value="kmh">km/h</button>
+                <button class="toggle-btn" data-unit="wind" data-value="mph">mph</button>
+            </div>
+        </div>
+        <div id="forecast-area">
+            <p class="loading">Loading weather data...</p>
+        </div>
+    </div>
+
+    <script>
+        var citySelect = document.getElementById("city-select");
+        var forecastArea = document.getElementById("forecast-area");
+        var rawForecasts = null;
+
+        var tempUnit = localStorage.getItem("tempUnit") || "C";
+        var windUnit = localStorage.getItem("windUnit") || "kmh";
+
+        function initToggles() {
+            var tempBtns = document.querySelectorAll('[data-unit="temp"]');
+            var windBtns = document.querySelectorAll('[data-unit="wind"]');
+            for (var i = 0; i < tempBtns.length; i++) {
+                if (tempBtns[i].getAttribute("data-value") === tempUnit) {
+                    tempBtns[i].classList.add("active");
+                } else {
+                    tempBtns[i].classList.remove("active");
+                }
+            }
+            for (var i = 0; i < windBtns.length; i++) {
+                if (windBtns[i].getAttribute("data-value") === windUnit) {
+                    windBtns[i].classList.add("active");
+                } else {
+                    windBtns[i].classList.remove("active");
+                }
+            }
+        }
+
+        document.querySelector(".unit-toggles").addEventListener("click", function(e) {
+            var btn = e.target.closest(".toggle-btn");
+            if (!btn) return;
+            var unit = btn.getAttribute("data-unit");
+            var value = btn.getAttribute("data-value");
+            if (unit === "temp") {
+                tempUnit = value;
+                localStorage.setItem("tempUnit", value);
+            } else {
+                windUnit = value;
+                localStorage.setItem("windUnit", value);
+            }
+            initToggles();
+            if (rawForecasts) {
+                renderForecasts(rawForecasts);
+            }
+        });
+
+        function escapeHtml(text) {
+            var div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function celsiusToFahrenheit(c) {
+            return (c * 9 / 5 + 32).toFixed(1);
+        }
+
+        function kmhToMph(kmh) {
+            return (kmh * 0.621371).toFixed(1);
+        }
+
+        function getDayLabel(dateStr, index) {
+            if (index === 0) return "Today";
+            if (index === 1) return "Tomorrow";
+            var date = new Date(dateStr + "T00:00:00");
+            var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            return days[date.getDay()];
+        }
+
+        function renderForecasts(forecasts) {
+            var tempLabel = tempUnit === "F" ? "\u00b0F" : "\u00b0C";
+            var windLabel = windUnit === "mph" ? "mph" : "km/h";
+
+            var html = '<div class="forecast-row">';
+            for (var i = 0; i < forecasts.length; i++) {
+                var f = forecasts[i];
+
+                var tMin = f.temperature_min;
+                var tMax = f.temperature_max;
+                var wind = f.wind_speed;
+
+                if (tempUnit === "F") {
+                    tMin = celsiusToFahrenheit(tMin);
+                    tMax = celsiusToFahrenheit(tMax);
+                }
+                if (windUnit === "mph") {
+                    wind = kmhToMph(wind);
+                }
+
+                html +=
+                    '<div class="day-card">' +
+                        '<div class="day-label">' + escapeHtml(getDayLabel(f.date, i)) + '</div>' +
+                        '<div class="day-temp">' + escapeHtml(String(tMin)) + ' / ' + escapeHtml(String(tMax)) + tempLabel + '</div>' +
+                        '<div class="day-emoji">' + escapeHtml(f.emoji || '') + '</div>' +
+                        '<div class="day-condition">' + escapeHtml(f.condition) + '</div>' +
+                        '<div class="day-details">' +
+                            '<div class="day-detail"><span class="day-detail-label">Humidity</span><span class="day-detail-value">' + escapeHtml(String(f.humidity)) + '%</span></div>' +
+                            '<div class="day-detail"><span class="day-detail-label">Wind</span><span class="day-detail-value">' + escapeHtml(String(wind)) + ' ' + windLabel + '</span></div>' +
+                        '</div>' +
+                    '</div>';
+            }
+            html += '</div>';
+            forecastArea.innerHTML = html;
+        }
+
+        function showError(message) {
+            forecastArea.innerHTML = '<p class="error">' + escapeHtml(message) + '</p>';
+        }
+
+        function showLoading() {
+            forecastArea.innerHTML = '<p class="loading">Loading forecast...</p>';
+        }
+
+        async function loadForecast(lat, lon) {
+            showLoading();
+            try {
+                var response = await fetch("/api/forecast?lat=" + lat + "&lon=" + lon);
+                var data = await response.json();
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                if (!data.forecasts || data.forecasts.length === 0) {
+                    showError("No forecast data available.");
+                    return;
+                }
+                rawForecasts = data.forecasts;
+                renderForecasts(rawForecasts);
+            } catch (err) {
+                showError("Unable to load forecast. Please check your connection and try again.");
+            }
+        }
+
+        function onCityChange() {
+            var option = citySelect.options[citySelect.selectedIndex];
+            var lat = option.getAttribute("data-lat");
+            var lon = option.getAttribute("data-lon");
+            if (lat && lon) {
+                loadForecast(lat, lon);
+            }
+        }
+
+        async function init() {
+            initToggles();
+            try {
+                var response = await fetch("/api/cities");
+                var data = await response.json();
+                if (!data.cities || data.cities.length === 0) {
+                    showError("No cities available.");
+                    return;
+                }
+
+                var cities = data.cities;
+                var detected = data.detected;
+                var selectedIndex = 0;
+
+                // If detected city is not in the list, prepend it
+                if (detected) {
+                    var found = false;
+                    for (var i = 0; i < cities.length; i++) {
+                        if (cities[i].lat === detected.lat && cities[i].lon === detected.lon) {
+                            found = true;
+                            selectedIndex = i;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        cities.unshift(detected);
+                        selectedIndex = 0;
+                    }
+                }
+
+                citySelect.innerHTML = "";
+                for (var i = 0; i < cities.length; i++) {
+                    var opt = document.createElement("option");
+                    opt.textContent = cities[i].city + ", " + cities[i].country;
+                    opt.setAttribute("data-lat", cities[i].lat);
+                    opt.setAttribute("data-lon", cities[i].lon);
+                    if (i === selectedIndex) opt.selected = true;
+                    citySelect.appendChild(opt);
+                }
+                citySelect.disabled = false;
+                citySelect.addEventListener("change", onCityChange);
+
+                // Load forecast for initially selected city
+                var initial = cities[selectedIndex];
+                loadForecast(initial.lat, initial.lon);
+            } catch (err) {
+                showError("Unable to load cities. Please check your connection and try again.");
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
