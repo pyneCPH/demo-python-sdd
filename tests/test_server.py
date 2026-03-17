@@ -230,6 +230,10 @@ def test_dark_mode_early_theme_script() -> None:
     head_section = html[:head_end]
     assert "localStorage" in head_section
     assert "data-theme" in head_section
+    # Early script must appear before <style> to prevent flash of wrong theme
+    script_pos = html.index('localStorage.getItem("theme")')
+    style_pos = html.index("<style>")
+    assert script_pos < style_pos
 
 
 @patch("server.get_forecast", return_value=None)
