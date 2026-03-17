@@ -7,7 +7,7 @@
         "pr-review-toolkit@pyne-tools": true
     },
     "extraKnownMarketplaces": {
-        "company-tools": {
+        "pyne-tools": {
             "source": {
                 "source": "github",
                 "repo": "pyneCPH/marketplace"
