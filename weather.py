@@ -100,7 +100,7 @@ CITIES: list[LocationData] = [
     LocationData(city="Berlin", country="Germany", lat=52.52, lon=13.41),
     LocationData(city="Madrid", country="Spain", lat=40.42, lon=-3.70),
     LocationData(city="Rome", country="Italy", lat=41.90, lon=12.50),
-    LocationData(city="Amsterdam", country="Netherlands", lat=52.37, lon=4.90),
+    LocationData(city="Athens", country="Greece", lat=37.98, lon=23.73),
     LocationData(city="Stockholm", country="Sweden", lat=59.33, lon=18.07),
 ]
 
