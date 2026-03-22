@@ -97,6 +97,11 @@ CITIES: list[LocationData] = [
     LocationData(city="São Paulo", country="Brazil", lat=-23.55, lon=-46.63),
     LocationData(city="Dubai", country="United Arab Emirates", lat=25.20, lon=55.27),
     LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56),
+    LocationData(city="Berlin", country="Germany", lat=52.52, lon=13.41),
+    LocationData(city="Madrid", country="Spain", lat=40.42, lon=-3.70),
+    LocationData(city="Rome", country="Italy", lat=41.90, lon=12.50),
+    LocationData(city="Amsterdam", country="Netherlands", lat=52.37, lon=4.90),
+    LocationData(city="Stockholm", country="Sweden", lat=59.33, lon=18.07),
 ]
 
 
