@@ -183,6 +183,8 @@ def get_forecast(lat: float, lon: float) -> list[DailyForecast] | None:
         with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
         daily = data["daily"]
+        sunrise_list = daily.get("sunrise") or []
+        sunset_list = daily.get("sunset") or []
         forecasts: list[DailyForecast] = []
         for i in range(len(daily["time"])):
             code = daily["weather_code"][i]
@@ -195,8 +197,8 @@ def get_forecast(lat: float, lon: float) -> list[DailyForecast] | None:
                     wind_speed=daily["wind_speed_10m_max"][i],
                     condition=describe_weather(code),
                     emoji=weather_emoji(code),
-                    sunrise=daily.get("sunrise", [""])[i] or "",
-                    sunset=daily.get("sunset", [""])[i] or "",
+                    sunrise=sunrise_list[i] or "" if i < len(sunrise_list) else "",
+                    sunset=sunset_list[i] or "" if i < len(sunset_list) else "",
                 )
             )
         return forecasts
