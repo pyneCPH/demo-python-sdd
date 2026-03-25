@@ -18,6 +18,17 @@ from weather import (
 )
 
 
+MOCK_LOCATION = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
+MOCK_WEATHER = WeatherData(
+    temperature=12.5,
+    humidity=72.0,
+    wind_speed=15.3,
+    visibility=24.1,
+    condition="Partly cloudy",
+    emoji="\u26c5",
+)
+
+
 class MockResponse:
     def __init__(self, data: bytes) -> None:
         self._data = BytesIO(data)
@@ -130,17 +141,7 @@ def test_get_weather_failure(mock_urlopen: object) -> None:
 
 
 def test_format_weather() -> None:
-    location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
-    weather = WeatherData(
-        temperature=12.5,
-        humidity=72.0,
-        wind_speed=15.3,
-        visibility=24.1,
-        condition="Partly cloudy",
-        emoji="\u26c5",
-    )
-
-    result = format_weather(location, weather)
+    result = format_weather(MOCK_LOCATION, MOCK_WEATHER)
 
     assert "Copenhagen" in result
     assert "Denmark" in result
@@ -234,17 +235,7 @@ def test_kmh_to_mph() -> None:
 
 
 def test_format_weather_fahrenheit() -> None:
-    location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
-    weather = WeatherData(
-        temperature=12.5,
-        humidity=72.0,
-        wind_speed=15.3,
-        visibility=24.1,
-        condition="Partly cloudy",
-        emoji="\u26c5",
-    )
-
-    result = format_weather(location, weather, temp_unit="F")
+    result = format_weather(MOCK_LOCATION, MOCK_WEATHER, temp_unit="F")
 
     assert "\u00b0F" in result
     assert "54.5" in result  # 12.5°C = 54.5°F
@@ -256,17 +247,7 @@ def test_format_weather_fahrenheit() -> None:
 
 
 def test_format_weather_mph() -> None:
-    location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
-    weather = WeatherData(
-        temperature=12.5,
-        humidity=72.0,
-        wind_speed=15.3,
-        visibility=24.1,
-        condition="Partly cloudy",
-        emoji="\u26c5",
-    )
-
-    result = format_weather(location, weather, wind_unit="mph")
+    result = format_weather(MOCK_LOCATION, MOCK_WEATHER, wind_unit="mph")
 
     assert "mph" in result
     assert "9.5" in result  # 15.3 km/h = 9.5 mph
@@ -278,17 +259,7 @@ def test_format_weather_mph() -> None:
 
 
 def test_format_weather_defaults_unchanged() -> None:
-    location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
-    weather = WeatherData(
-        temperature=12.5,
-        humidity=72.0,
-        wind_speed=15.3,
-        visibility=24.1,
-        condition="Partly cloudy",
-        emoji="\u26c5",
-    )
-
-    result = format_weather(location, weather)
+    result = format_weather(MOCK_LOCATION, MOCK_WEATHER)
 
     assert "\u00b0C" in result
     assert "km/h" in result
