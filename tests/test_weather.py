@@ -133,6 +133,26 @@ def test_get_weather_success(mock_urlopen: object) -> None:
 
 
 @patch("weather.urllib.request.urlopen")
+def test_get_weather_missing_visibility(mock_urlopen: object) -> None:
+    response_data = json.dumps(
+        {
+            "current": {
+                "temperature_2m": 10.0,
+                "relative_humidity_2m": 80.0,
+                "wind_speed_10m": 5.0,
+                "weather_code": 45,
+            }
+        }
+    ).encode()
+    mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
+
+    result = get_weather(55.67, 12.56)
+
+    assert result is not None
+    assert result["visibility"] == 0.0
+
+
+@patch("weather.urllib.request.urlopen")
 def test_get_weather_failure(mock_urlopen: object) -> None:
     mock_urlopen.side_effect = OSError("Connection refused")  # type: ignore[attr-defined]
 
