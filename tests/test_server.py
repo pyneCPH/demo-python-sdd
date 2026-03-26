@@ -329,6 +329,5 @@ def test_options_preflight_cors_headers() -> None:
     server.server_close()
 
     assert headers.get("access-control-allow-origin") == "*"
-    assert "GET" in headers.get("access-control-allow-methods", "")
-    assert "OPTIONS" in headers.get("access-control-allow-methods", "")
+    assert headers.get("access-control-allow-methods") == "GET, OPTIONS"
     assert headers.get("access-control-allow-headers") == "Content-Type"
