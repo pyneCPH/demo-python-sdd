@@ -39,7 +39,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if location is None:
             self._send_json(
                 502,
-                {"error": "Could not determine your location. Please check your internet connection and try again."},
+                {
+                    "error": "Could not determine your location. Please check your internet connection and try again."
+                },
             )
             return
 
@@ -47,7 +49,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if weather is None:
             self._send_json(
                 502,
-                {"error": "Could not retrieve weather data. The weather service may be temporarily unavailable."},
+                {
+                    "error": "Could not retrieve weather data. The weather service may be temporarily unavailable."
+                },
             )
             return
 
@@ -57,7 +61,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         location = get_location()
         cities = get_cities()
         detected: dict[str, object] | None = dict(location) if location else None
-        self._send_json(200, {"cities": [dict(c) for c in cities], "detected": detected})
+        self._send_json(
+            200, {"cities": [dict(c) for c in cities], "detected": detected}
+        )
 
     def _serve_forecast_api(self) -> None:
         from urllib.parse import parse_qs, urlparse
