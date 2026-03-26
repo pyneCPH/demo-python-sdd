@@ -96,6 +96,16 @@ class WeatherHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"Not Found")
 
+    def end_headers(self) -> None:
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
     def log_message(self, format: str, *args: object) -> None:
         # Suppress default stderr logging during normal operation
         pass

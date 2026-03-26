@@ -198,3 +198,97 @@ def test_api_forecast_service_failure(mock_forecast: object) -> None:
     assert status == 502
     data = json.loads(body)
     assert "error" in data
+
+
+@patch("server.get_weather", return_value=MOCK_WEATHER)
+@patch("server.get_location", return_value=MOCK_LOCATION)
+def test_cors_header_on_weather_api(mock_loc: object, mock_weather: object) -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/api/weather")
+    thread.join()
+    server.server_close()
+
+    assert headers.get("access-control-allow-origin") == "*"
+
+
+@patch("server.get_cities", return_value=MOCK_CITIES)
+@patch("server.get_location", return_value=MOCK_LOCATION)
+def test_cors_header_on_cities_api(mock_loc: object, mock_cities: object) -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/api/cities")
+    thread.join()
+    server.server_close()
+
+    assert headers.get("access-control-allow-origin") == "*"
+
+
+@patch("server.get_forecast", return_value=MOCK_FORECASTS)
+def test_cors_header_on_forecast_api(mock_forecast: object) -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/api/forecast?lat=55.67&lon=12.56")
+    thread.join()
+    server.server_close()
+
+    assert headers.get("access-control-allow-origin") == "*"
+
+
+def test_cors_header_on_error_response() -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/api/forecast")
+    thread.join()
+    server.server_close()
+
+    assert status == 400
+    assert headers.get("access-control-allow-origin") == "*"
+
+
+def test_cors_header_on_not_found() -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "GET", "/unknown")
+    thread.join()
+    server.server_close()
+
+    assert status == 404
+    assert headers.get("access-control-allow-origin") == "*"
+
+
+def test_options_preflight_returns_204() -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "OPTIONS", "/api/weather")
+    thread.join()
+    server.server_close()
+
+    assert status == 204
+
+
+def test_options_preflight_cors_headers() -> None:
+    server = _make_server()
+    thread = Thread(target=server.handle_request)
+    thread.start()
+
+    status, headers, body = _request(server, "OPTIONS", "/api/weather")
+    thread.join()
+    server.server_close()
+
+    assert headers.get("access-control-allow-origin") == "*"
+    assert "GET" in headers.get("access-control-allow-methods", "")
+    assert "OPTIONS" in headers.get("access-control-allow-methods", "")
+    assert headers.get("access-control-allow-headers") == "Content-Type"
