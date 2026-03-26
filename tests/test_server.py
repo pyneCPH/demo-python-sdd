@@ -4,7 +4,8 @@ from threading import Thread
 from http.server import HTTPServer
 from unittest.mock import patch
 
-from server import WeatherHandler
+import server
+from server import RateLimiter, WeatherHandler
 from weather import DailyForecast, LocationData, WeatherData
 
 
@@ -187,14 +188,110 @@ def test_api_forecast_missing_params() -> None:
 
 @patch("server.get_forecast", return_value=None)
 def test_api_forecast_service_failure(mock_forecast: object) -> None:
-    server = _make_server()
-    thread = Thread(target=server.handle_request)
+    srv = _make_server()
+    thread = Thread(target=srv.handle_request)
     thread.start()
 
-    status, headers, body = _request(server, "GET", "/api/forecast?lat=55.67&lon=12.56")
+    status, headers, body = _request(srv, "GET", "/api/forecast?lat=55.67&lon=12.56")
     thread.join()
-    server.server_close()
+    srv.server_close()
 
     assert status == 502
     data = json.loads(body)
     assert "error" in data
+
+
+# --- RateLimiter unit tests ---
+
+
+def test_rate_limiter_allows_up_to_limit() -> None:
+    rl = RateLimiter()
+    for _ in range(60):
+        allowed, retry_after = rl.is_allowed("1.2.3.4")
+        assert allowed is True
+        assert retry_after == 0
+
+
+def test_rate_limiter_rejects_over_limit() -> None:
+    rl = RateLimiter()
+    for _ in range(60):
+        rl.is_allowed("1.2.3.4")
+    allowed, retry_after = rl.is_allowed("1.2.3.4")
+    assert allowed is False
+    assert retry_after > 0
+
+
+def test_rate_limiter_sliding_window() -> None:
+    rl = RateLimiter()
+    # Fill up limit with timestamps at t=0
+    with patch("time.monotonic", return_value=0.0):
+        for _ in range(60):
+            rl.is_allowed("1.2.3.4")
+    # At t=59.9 still blocked
+    with patch("time.monotonic", return_value=59.9):
+        allowed, _ = rl.is_allowed("1.2.3.4")
+        assert allowed is False
+    # At t=60.0 the oldest entry (t=0) ages out, freeing a slot
+    with patch("time.monotonic", return_value=60.0):
+        allowed, _ = rl.is_allowed("1.2.3.4")
+        assert allowed is True
+
+
+def test_rate_limiter_independent_ips() -> None:
+    rl = RateLimiter()
+    # Exhaust IP A
+    for _ in range(60):
+        rl.is_allowed("10.0.0.1")
+    allowed_a, _ = rl.is_allowed("10.0.0.1")
+    assert allowed_a is False
+    # IP B is unaffected
+    allowed_b, retry_b = rl.is_allowed("10.0.0.2")
+    assert allowed_b is True
+    assert retry_b == 0
+
+
+# --- Integration tests for rate limiting ---
+
+
+@patch("server.get_location", return_value=MOCK_LOCATION)
+def test_api_rate_limit_returns_429(mock_loc: object) -> None:
+    with patch.object(server._rate_limiter, "is_allowed", return_value=(False, 30)):
+        srv = _make_server()
+        thread = Thread(target=srv.handle_request)
+        thread.start()
+
+        status, headers, body = _request(srv, "GET", "/api/weather")
+        thread.join()
+        srv.server_close()
+
+    assert status == 429
+    data = json.loads(body)
+    assert "error" in data
+    assert headers.get("retry-after") == "30"
+
+
+@patch("server.get_location", return_value=MOCK_LOCATION)
+def test_api_rate_limit_json_content_type(mock_loc: object) -> None:
+    with patch.object(server._rate_limiter, "is_allowed", return_value=(False, 30)):
+        srv = _make_server()
+        thread = Thread(target=srv.handle_request)
+        thread.start()
+
+        status, headers, body = _request(srv, "GET", "/api/weather")
+        thread.join()
+        srv.server_close()
+
+    assert "application/json" in headers.get("content-type", "")
+
+
+def test_index_not_rate_limited() -> None:
+    with patch.object(server._rate_limiter, "is_allowed", return_value=(False, 1)):
+        srv = _make_server()
+        thread = Thread(target=srv.handle_request)
+        thread.start()
+
+        status, headers, body = _request(srv, "GET", "/")
+        thread.join()
+        srv.server_close()
+
+    assert status == 200

@@ -1,10 +1,38 @@
 import json
+import math
+import time
+from collections import deque
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 from weather import get_cities, get_forecast, get_location, get_weather
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+
+class RateLimiter:
+    _LIMIT = 60          # max requests
+    _WINDOW = 60.0       # seconds
+
+    def __init__(self) -> None:
+        self._store: dict[str, deque[float]] = {}
+
+    def is_allowed(self, ip: str) -> tuple[bool, int]:
+        now = time.monotonic()
+        if ip not in self._store:
+            self._store[ip] = deque()
+        timestamps = self._store[ip]
+        # Evict timestamps outside the window
+        while timestamps and now - timestamps[0] >= self._WINDOW:
+            timestamps.popleft()
+        if len(timestamps) >= self._LIMIT:
+            retry_after = math.ceil(self._WINDOW - (now - timestamps[0]))
+            return False, retry_after
+        timestamps.append(now)
+        return True, 0
+
+
+_rate_limiter = RateLimiter()
 
 
 class WeatherHandler(BaseHTTPRequestHandler):
@@ -34,7 +62,22 @@ class WeatherHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"Template not found")
 
+    def _check_rate_limit(self) -> bool:
+        ip = self.client_address[0]
+        allowed, retry_after = _rate_limiter.is_allowed(ip)
+        if not allowed:
+            body = json.dumps({"error": "Rate limit exceeded. Try again later."}).encode()
+            self.send_response(429)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Retry-After", str(retry_after))
+            self.end_headers()
+            self.wfile.write(body)
+            return False
+        return True
+
     def _serve_weather_api(self) -> None:
+        if not self._check_rate_limit():
+            return
         location = get_location()
         if location is None:
             self._send_json(
@@ -54,12 +97,16 @@ class WeatherHandler(BaseHTTPRequestHandler):
         self._send_json(200, {"location": dict(location), "weather": dict(weather)})
 
     def _serve_cities_api(self) -> None:
+        if not self._check_rate_limit():
+            return
         location = get_location()
         cities = get_cities()
         detected: dict[str, object] | None = dict(location) if location else None
         self._send_json(200, {"cities": [dict(c) for c in cities], "detected": detected})
 
     def _serve_forecast_api(self) -> None:
+        if not self._check_rate_limit():
+            return
         from urllib.parse import parse_qs, urlparse
 
         parsed = urlparse(self.path)
