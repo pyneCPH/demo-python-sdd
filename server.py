@@ -11,8 +11,8 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
 class RateLimiter:
-    _LIMIT = 60          # max requests
-    _WINDOW = 60.0       # seconds
+    _LIMIT = 60  # max requests
+    _WINDOW = 60.0  # seconds
 
     def __init__(self) -> None:
         self._store: dict[str, deque[float]] = {}
@@ -66,7 +66,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         ip = self.client_address[0]
         allowed, retry_after = _rate_limiter.is_allowed(ip)
         if not allowed:
-            body = json.dumps({"error": "Rate limit exceeded. Try again later."}).encode()
+            body = json.dumps(
+                {"error": "Rate limit exceeded. Try again later."}
+            ).encode()
             self.send_response(429)
             self.send_header("Content-Type", "application/json")
             self.send_header("Retry-After", str(retry_after))
@@ -82,7 +84,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if location is None:
             self._send_json(
                 502,
-                {"error": "Could not determine your location. Please check your internet connection and try again."},
+                {
+                    "error": "Could not determine your location. Please check your internet connection and try again."
+                },
             )
             return
 
@@ -90,7 +94,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if weather is None:
             self._send_json(
                 502,
-                {"error": "Could not retrieve weather data. The weather service may be temporarily unavailable."},
+                {
+                    "error": "Could not retrieve weather data. The weather service may be temporarily unavailable."
+                },
             )
             return
 
@@ -102,7 +108,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         location = get_location()
         cities = get_cities()
         detected: dict[str, object] | None = dict(location) if location else None
-        self._send_json(200, {"cities": [dict(c) for c in cities], "detected": detected})
+        self._send_json(
+            200, {"cities": [dict(c) for c in cities], "detected": detected}
+        )
 
     def _serve_forecast_api(self) -> None:
         if not self._check_rate_limit():
