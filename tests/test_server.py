@@ -67,6 +67,7 @@ def test_api_weather_location_failure(mock_loc: object) -> None:
     server.server_close()
 
     assert status == 502
+    assert "x-response-time" in headers
     data = json.loads(body)
     assert "location" in data["error"].lower()
 
@@ -83,6 +84,7 @@ def test_api_weather_weather_failure(mock_loc: object, mock_weather: object) -> 
     server.server_close()
 
     assert status == 502
+    assert "x-response-time" in headers
     data = json.loads(body)
     assert "weather" in data["error"].lower()
 
@@ -221,6 +223,7 @@ def test_api_forecast_missing_params() -> None:
     server.server_close()
 
     assert status == 400
+    assert "x-response-time" in headers
     data = json.loads(body)
     assert "error" in data
 
@@ -236,6 +239,7 @@ def test_api_forecast_service_failure(mock_forecast: object) -> None:
     server.server_close()
 
     assert status == 502
+    assert "x-response-time" in headers
     data = json.loads(body)
     assert "error" in data
 

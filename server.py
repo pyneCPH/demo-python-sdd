@@ -9,6 +9,8 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
 class WeatherHandler(BaseHTTPRequestHandler):
+    _start_time: float
+
     def do_GET(self) -> None:
         self._start_time = time.perf_counter()
         if self.path == "/":
@@ -105,8 +107,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"Not Found")
 
     def end_headers(self) -> None:
-        elapsed_ms = (time.perf_counter() - self._start_time) * 1000
-        self.send_header("X-Response-Time", f"{elapsed_ms:.3f}")
+        if hasattr(self, "_start_time"):
+            elapsed_ms = (time.perf_counter() - self._start_time) * 1000
+            self.send_header("X-Response-Time", f"{elapsed_ms:.3f}")
         super().end_headers()
 
     def log_message(self, format: str, *args: object) -> None:
