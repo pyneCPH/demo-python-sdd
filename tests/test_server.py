@@ -198,3 +198,29 @@ def test_api_forecast_service_failure(mock_forecast: object) -> None:
     assert status == 502
     data = json.loads(body)
     assert "error" in data
+
+
+@patch("server.get_forecast", return_value=MOCK_FORECASTS)
+@patch("server.get_cities", return_value=MOCK_CITIES)
+@patch("server.get_weather", return_value=MOCK_WEATHER)
+@patch("server.get_location", return_value=MOCK_LOCATION)
+def test_response_time_header_present_on_all_routes(
+    mock_loc: object, mock_weather: object, mock_cities: object, mock_forecast: object
+) -> None:
+    routes = [
+        "/",
+        "/api/weather",
+        "/api/cities",
+        "/api/forecast?lat=55.67&lon=12.56",
+        "/unknown",
+    ]
+    for path in routes:
+        server = _make_server()
+        thread = Thread(target=server.handle_request)
+        thread.start()
+        _status, headers, _body = _request(server, "GET", path)
+        thread.join()
+        server.server_close()
+
+        assert "x-response-time" in headers, f"Missing X-Response-Time on {path}"
+        assert float(headers["x-response-time"]) >= 0, f"Negative X-Response-Time on {path}"
