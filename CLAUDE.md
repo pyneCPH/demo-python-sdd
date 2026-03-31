@@ -12,11 +12,22 @@ This project uses spec-linear for spec-driven development with Linear integratio
 
 **Never skip steps. Never implement code without first creating a spec and plan.**
 
+### Commands
+
+| Command                    | Purpose                                               |
+| -------------------------- | ----------------------------------------------------- |
+| `/speclinear.constitute`   | Establish project governing principles (constitution) |
+| `/speclinear.specify`      | Create feature branch + Feature issue + Spec document |
+| `/speclinear.clarify`      | Clarify ambiguities in the spec via Q&A               |
+| `/speclinear.plan`         | Generate Plan document + task sub-issues              |
+| `/speclinear.implement`    | Execute tasks and update Linear statuses              |
+| `/speclinear.review-close` | Commit, create PR, run code review, close feature     |
+
 ### Linear Context
 
 - **Team**: Spec Driven Development Demo
 - **Project**: demo-python-sdd
-- **SDD Labels**: SDD - Feature, SDD - Spec, SDD - Plan, SDD - Task
+- **SDD Labels**: SDD - Feature, SDD - Task
 
 ### Project Conventions
 

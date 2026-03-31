@@ -9,5 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Other
+.DS_Store
+
 # Specify
-.specify/
+.specify/scripts/
+.specify/templates/
