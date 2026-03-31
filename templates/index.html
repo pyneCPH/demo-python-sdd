@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: "JetBrains Mono", "Courier New", Courier, monospace;
+            font-family: Verdana, Geneva, sans-serif;
+            color: blue;
             background: #f0f2f5;
             display: flex;
             justify-content: center;
@@ -37,7 +35,7 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             background: #fff;
-            color: #333;
+            color: blue;
             cursor: pointer;
             min-width: 250px;
         }
@@ -57,7 +55,7 @@
 
         .toggle-group span.toggle-label {
             font-size: 0.8rem;
-            color: #999;
+            color: blue;
             margin-right: 0.25rem;
         }
 
@@ -66,7 +64,7 @@
             padding: 0.3rem 0.65rem;
             border: 1px solid #ddd;
             background: #fff;
-            color: #666;
+            color: blue;
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
         }
@@ -80,9 +78,9 @@
         }
 
         .toggle-btn.active {
-            background: #333;
+            background: blue;
             color: #fff;
-            border-color: #333;
+            border-color: blue;
         }
 
         .forecast-row {
@@ -106,7 +104,7 @@
         .day-label {
             font-size: 0.85rem;
             font-weight: 600;
-            color: #555;
+            color: blue;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 0.75rem;
@@ -115,7 +113,7 @@
         .day-temp {
             font-size: 1.5rem;
             font-weight: 300;
-            color: #111;
+            color: blue;
             margin-bottom: 0.25rem;
         }
 
@@ -127,7 +125,7 @@
 
         .day-condition {
             font-size: 0.95rem;
-            color: #666;
+            color: blue;
             margin-bottom: 1rem;
         }
 
@@ -144,15 +142,15 @@
         }
 
         .day-detail-label {
-            color: #999;
+            color: blue;
         }
 
         .day-detail-value {
-            color: #333;
+            color: blue;
         }
 
         .loading {
-            color: #999;
+            color: blue;
             font-size: 1rem;
             padding: 2rem;
         }
