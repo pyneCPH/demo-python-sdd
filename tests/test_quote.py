@@ -1,3 +1,4 @@
+import datetime
 import json
 from io import BytesIO
 from pathlib import Path
@@ -53,13 +54,19 @@ def test_fetch_quote_malformed_json(mock_urlopen: object) -> None:
     assert result is None
 
 
+@patch("quote.urllib.request.urlopen")
+def test_fetch_quote_empty_api_response(mock_urlopen: object) -> None:
+    mock_urlopen.return_value = MockResponse(b"[]")  # type: ignore[attr-defined]
+
+    result = fetch_quote()
+    assert result is None
+
+
 # --- get_daily_quote tests ---
 
 
 @patch("quote.fetch_quote")
 def test_get_daily_quote_cache_hit(mock_fetch: object, tmp_path: Path) -> None:
-    import datetime
-
     cache_file = tmp_path / "quote_cache.json"
     today = datetime.date.today().isoformat()
     cache_file.write_text(
@@ -133,7 +140,9 @@ def test_get_daily_quote_api_failure_stale_cache(
     with patch("quote.CACHE_PATH", cache_file):
         result = get_daily_quote()
 
-    assert result is None
+    assert result is not None
+    assert result["text"] == "Old quote."
+    assert result["author"] == "Old"
 
 
 # --- format_quote_box tests ---
