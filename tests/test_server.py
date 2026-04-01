@@ -13,7 +13,9 @@ def _make_server() -> HTTPServer:
     return server
 
 
-def _request(server: HTTPServer, method: str, path: str) -> tuple[int, dict[str, str], bytes]:
+def _request(
+    server: HTTPServer, method: str, path: str
+) -> tuple[int, dict[str, str], bytes]:
     host, port = server.server_address
     conn = HTTPConnection(str(host), port)
     conn.request(method, path)
@@ -26,7 +28,14 @@ def _request(server: HTTPServer, method: str, path: str) -> tuple[int, dict[str,
 
 
 MOCK_LOCATION = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
-MOCK_WEATHER = WeatherData(temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy", emoji="\u26c5")
+MOCK_WEATHER = WeatherData(
+    temperature=12.5,
+    humidity=72.0,
+    wind_speed=15.3,
+    visibility=24.1,
+    condition="Partly cloudy",
+    emoji="\u26c5",
+)
 
 
 @patch("server.get_weather", return_value=MOCK_WEATHER)
@@ -45,6 +54,7 @@ def test_api_weather_success(mock_loc: object, mock_weather: object) -> None:
     data = json.loads(body)
     assert data["location"]["city"] == "Copenhagen"
     assert data["weather"]["temperature"] == 12.5
+    assert data["weather"]["visibility"] == 24.1
     assert data["weather"]["emoji"] == "\u26c5"
 
 
@@ -111,10 +121,42 @@ MOCK_CITIES = [
 ]
 
 MOCK_FORECASTS = [
-    DailyForecast(date="2026-02-28", temperature_max=8.2, temperature_min=3.1, humidity=75.0, wind_speed=12.5, condition="Partly cloudy", emoji="\u26c5"),
-    DailyForecast(date="2026-03-01", temperature_max=10.1, temperature_min=4.2, humidity=68.0, wind_speed=8.3, condition="Overcast", emoji="\u2601\ufe0f"),
-    DailyForecast(date="2026-03-02", temperature_max=7.5, temperature_min=2.8, humidity=80.0, wind_speed=15.7, condition="Slight rain", emoji="\U0001f327\ufe0f"),
-    DailyForecast(date="2026-03-03", temperature_max=9.3, temperature_min=3.9, humidity=72.0, wind_speed=10.1, condition="Mainly clear", emoji="\U0001f324\ufe0f"),
+    DailyForecast(
+        date="2026-02-28",
+        temperature_max=8.2,
+        temperature_min=3.1,
+        humidity=75.0,
+        wind_speed=12.5,
+        condition="Partly cloudy",
+        emoji="\u26c5",
+    ),
+    DailyForecast(
+        date="2026-03-01",
+        temperature_max=10.1,
+        temperature_min=4.2,
+        humidity=68.0,
+        wind_speed=8.3,
+        condition="Overcast",
+        emoji="\u2601\ufe0f",
+    ),
+    DailyForecast(
+        date="2026-03-02",
+        temperature_max=7.5,
+        temperature_min=2.8,
+        humidity=80.0,
+        wind_speed=15.7,
+        condition="Slight rain",
+        emoji="\U0001f327\ufe0f",
+    ),
+    DailyForecast(
+        date="2026-03-03",
+        temperature_max=9.3,
+        temperature_min=3.9,
+        humidity=72.0,
+        wind_speed=10.1,
+        condition="Mainly clear",
+        emoji="\U0001f324\ufe0f",
+    ),
 ]
 
 
