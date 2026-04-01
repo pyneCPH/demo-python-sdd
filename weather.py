@@ -12,6 +12,7 @@ class LocationData(TypedDict):
 
 class WeatherData(TypedDict):
     temperature: float
+    apparent_temperature: float
     humidity: float
     wind_speed: float
     condition: str
@@ -59,10 +60,10 @@ WEATHER_CODES: dict[int, str] = {
 
 
 WEATHER_EMOJIS: dict[int, str] = {
-    0: "\u2600\ufe0f",       # Clear sky
-    1: "\U0001f324\ufe0f",   # Mainly clear
-    2: "\u26c5",             # Partly cloudy
-    3: "\u2601\ufe0f",       # Overcast
+    0: "\u2600\ufe0f",  # Clear sky
+    1: "\U0001f324\ufe0f",  # Mainly clear
+    2: "\u26c5",  # Partly cloudy
+    3: "\u2601\ufe0f",  # Overcast
     45: "\U0001f32b\ufe0f",  # Foggy
     48: "\U0001f32b\ufe0f",  # Depositing rime fog
     51: "\U0001f326\ufe0f",  # Light drizzle
@@ -71,20 +72,20 @@ WEATHER_EMOJIS: dict[int, str] = {
     61: "\U0001f327\ufe0f",  # Slight rain
     63: "\U0001f327\ufe0f",  # Moderate rain
     65: "\U0001f327\ufe0f",  # Heavy rain
-    66: "\U0001f9ca",        # Light freezing rain
-    67: "\U0001f9ca",        # Heavy freezing rain
-    71: "\u2744\ufe0f",      # Slight snowfall
-    73: "\u2744\ufe0f",      # Moderate snowfall
-    75: "\u2744\ufe0f",      # Heavy snowfall
-    77: "\u2744\ufe0f",      # Snow grains
+    66: "\U0001f9ca",  # Light freezing rain
+    67: "\U0001f9ca",  # Heavy freezing rain
+    71: "\u2744\ufe0f",  # Slight snowfall
+    73: "\u2744\ufe0f",  # Moderate snowfall
+    75: "\u2744\ufe0f",  # Heavy snowfall
+    77: "\u2744\ufe0f",  # Snow grains
     80: "\U0001f327\ufe0f",  # Slight rain showers
     81: "\U0001f327\ufe0f",  # Moderate rain showers
     82: "\U0001f327\ufe0f",  # Violent rain showers
     85: "\U0001f328\ufe0f",  # Slight snow showers
     86: "\U0001f328\ufe0f",  # Heavy snow showers
-    95: "\u26c8\ufe0f",      # Thunderstorm
-    96: "\u26c8\ufe0f",      # Thunderstorm with slight hail
-    99: "\u26c8\ufe0f",      # Thunderstorm with heavy hail
+    95: "\u26c8\ufe0f",  # Thunderstorm
+    96: "\u26c8\ufe0f",  # Thunderstorm with slight hail
+    99: "\u26c8\ufe0f",  # Thunderstorm with heavy hail
 }
 
 
@@ -142,7 +143,7 @@ def get_weather(lat: float, lon: float) -> WeatherData | None:
         url = (
             f"https://api.open-meteo.com/v1/forecast"
             f"?latitude={lat}&longitude={lon}"
-            f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code"
+            f"&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code"
             f"&wind_speed_unit=kmh"
         )
         req = urllib.request.Request(url)
@@ -152,6 +153,7 @@ def get_weather(lat: float, lon: float) -> WeatherData | None:
         code = current["weather_code"]
         return WeatherData(
             temperature=current["temperature_2m"],
+            apparent_temperature=current["apparent_temperature"],
             humidity=current["relative_humidity_2m"],
             wind_speed=current["wind_speed_10m"],
             condition=describe_weather(code),
@@ -177,15 +179,17 @@ def get_forecast(lat: float, lon: float) -> list[DailyForecast] | None:
         forecasts: list[DailyForecast] = []
         for i in range(len(daily["time"])):
             code = daily["weather_code"][i]
-            forecasts.append(DailyForecast(
-                date=daily["time"][i],
-                temperature_max=daily["temperature_2m_max"][i],
-                temperature_min=daily["temperature_2m_min"][i],
-                humidity=daily["relative_humidity_2m_mean"][i],
-                wind_speed=daily["wind_speed_10m_max"][i],
-                condition=describe_weather(code),
-                emoji=weather_emoji(code),
-            ))
+            forecasts.append(
+                DailyForecast(
+                    date=daily["time"][i],
+                    temperature_max=daily["temperature_2m_max"][i],
+                    temperature_min=daily["temperature_2m_min"][i],
+                    humidity=daily["relative_humidity_2m_mean"][i],
+                    wind_speed=daily["wind_speed_10m_max"][i],
+                    condition=describe_weather(code),
+                    emoji=weather_emoji(code),
+                )
+            )
         return forecasts
     except Exception:
         return None
@@ -198,9 +202,11 @@ def format_weather(
     wind_unit: str = "kmh",
 ) -> str:
     temp = weather["temperature"]
+    feels_like = weather["apparent_temperature"]
     temp_label = "\u00b0C"
     if temp_unit == "F":
         temp = celsius_to_fahrenheit(temp)
+        feels_like = celsius_to_fahrenheit(feels_like)
         temp_label = "\u00b0F"
 
     wind = weather["wind_speed"]
@@ -212,7 +218,7 @@ def format_weather(
     return (
         f"Weather for {location['city']}, {location['country']}\n"
         f"\n"
-        f"  Temperature:  {temp}{temp_label}\n"
+        f"  Temperature:  {temp}{temp_label} (feels like {feels_like}{temp_label})\n"
         f"  Condition:    {weather['emoji']} {weather['condition']}\n"
         f"  Humidity:     {weather['humidity']}%\n"
         f"  Wind Speed:   {wind} {wind_label}"
