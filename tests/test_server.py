@@ -13,7 +13,9 @@ def _make_server() -> HTTPServer:
     return server
 
 
-def _request(server: HTTPServer, method: str, path: str) -> tuple[int, dict[str, str], bytes]:
+def _request(
+    server: HTTPServer, method: str, path: str
+) -> tuple[int, dict[str, str], bytes]:
     host, port = server.server_address
     conn = HTTPConnection(str(host), port)
     conn.request(method, path)
@@ -26,7 +28,13 @@ def _request(server: HTTPServer, method: str, path: str) -> tuple[int, dict[str,
 
 
 MOCK_LOCATION = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
-MOCK_WEATHER = WeatherData(temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy", emoji="\u26c5")
+MOCK_WEATHER = WeatherData(
+    temperature=12.5,
+    humidity=72.0,
+    wind_speed=15.3,
+    condition="Partly cloudy",
+    emoji="\u26c5",
+)
 
 
 @patch("server.get_weather", return_value=MOCK_WEATHER)
@@ -111,10 +119,50 @@ MOCK_CITIES = [
 ]
 
 MOCK_FORECASTS = [
-    DailyForecast(date="2026-02-28", temperature_max=8.2, temperature_min=3.1, humidity=75.0, wind_speed=12.5, condition="Partly cloudy", emoji="\u26c5"),
-    DailyForecast(date="2026-03-01", temperature_max=10.1, temperature_min=4.2, humidity=68.0, wind_speed=8.3, condition="Overcast", emoji="\u2601\ufe0f"),
-    DailyForecast(date="2026-03-02", temperature_max=7.5, temperature_min=2.8, humidity=80.0, wind_speed=15.7, condition="Slight rain", emoji="\U0001f327\ufe0f"),
-    DailyForecast(date="2026-03-03", temperature_max=9.3, temperature_min=3.9, humidity=72.0, wind_speed=10.1, condition="Mainly clear", emoji="\U0001f324\ufe0f"),
+    DailyForecast(
+        date="2026-02-28",
+        temperature_max=8.2,
+        temperature_min=3.1,
+        humidity=75.0,
+        wind_speed=12.5,
+        condition="Partly cloudy",
+        emoji="\u26c5",
+        sunrise="2026-02-28T06:45",
+        sunset="2026-02-28T17:52",
+    ),
+    DailyForecast(
+        date="2026-03-01",
+        temperature_max=10.1,
+        temperature_min=4.2,
+        humidity=68.0,
+        wind_speed=8.3,
+        condition="Overcast",
+        emoji="\u2601\ufe0f",
+        sunrise="2026-03-01T06:43",
+        sunset="2026-03-01T17:54",
+    ),
+    DailyForecast(
+        date="2026-03-02",
+        temperature_max=7.5,
+        temperature_min=2.8,
+        humidity=80.0,
+        wind_speed=15.7,
+        condition="Slight rain",
+        emoji="\U0001f327\ufe0f",
+        sunrise="2026-03-02T06:41",
+        sunset="2026-03-02T17:56",
+    ),
+    DailyForecast(
+        date="2026-03-03",
+        temperature_max=9.3,
+        temperature_min=3.9,
+        humidity=72.0,
+        wind_speed=10.1,
+        condition="Mainly clear",
+        emoji="\U0001f324\ufe0f",
+        sunrise="2026-03-03T06:39",
+        sunset="2026-03-03T17:58",
+    ),
 ]
 
 
@@ -169,6 +217,8 @@ def test_api_forecast_success(mock_forecast: object) -> None:
     assert len(data["forecasts"]) == 4
     assert data["forecasts"][0]["date"] == "2026-02-28"
     assert data["forecasts"][0]["emoji"] == "\u26c5"
+    assert data["forecasts"][0]["sunrise"] == "2026-02-28T06:45"
+    assert data["forecasts"][0]["sunset"] == "2026-02-28T17:52"
 
 
 def test_api_forecast_missing_params() -> None:

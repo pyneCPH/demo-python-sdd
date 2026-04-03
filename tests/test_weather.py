@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 from weather import (
     CITIES,
-    DailyForecast,
     LocationData,
     WeatherData,
     celsius_to_fahrenheit,
@@ -59,13 +58,15 @@ def test_weather_emoji_unknown_code() -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_location_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "status": "success",
-        "city": "Copenhagen",
-        "country": "Denmark",
-        "lat": 55.67,
-        "lon": 12.56,
-    }).encode()
+    response_data = json.dumps(
+        {
+            "status": "success",
+            "city": "Copenhagen",
+            "country": "Denmark",
+            "lat": 55.67,
+            "lon": 12.56,
+        }
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_location()
@@ -96,14 +97,16 @@ def test_get_location_network_error(mock_urlopen: object) -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_weather_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "current": {
-            "temperature_2m": 12.5,
-            "relative_humidity_2m": 72.0,
-            "wind_speed_10m": 15.3,
-            "weather_code": 2,
+    response_data = json.dumps(
+        {
+            "current": {
+                "temperature_2m": 12.5,
+                "relative_humidity_2m": 72.0,
+                "wind_speed_10m": 15.3,
+                "weather_code": 2,
+            }
         }
-    }).encode()
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_weather(55.67, 12.56)
@@ -127,7 +130,10 @@ def test_get_weather_failure(mock_urlopen: object) -> None:
 def test_format_weather() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -161,16 +167,30 @@ def test_get_cities_returns_copy() -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_forecast_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "daily": {
-            "time": ["2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03"],
-            "temperature_2m_max": [8.2, 10.1, 7.5, 9.3],
-            "temperature_2m_min": [3.1, 4.2, 2.8, 3.9],
-            "relative_humidity_2m_mean": [75.0, 68.0, 80.0, 72.0],
-            "wind_speed_10m_max": [12.5, 8.3, 15.7, 10.1],
-            "weather_code": [2, 3, 61, 1],
+    response_data = json.dumps(
+        {
+            "daily": {
+                "time": ["2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03"],
+                "temperature_2m_max": [8.2, 10.1, 7.5, 9.3],
+                "temperature_2m_min": [3.1, 4.2, 2.8, 3.9],
+                "relative_humidity_2m_mean": [75.0, 68.0, 80.0, 72.0],
+                "wind_speed_10m_max": [12.5, 8.3, 15.7, 10.1],
+                "weather_code": [2, 3, 61, 1],
+                "sunrise": [
+                    "2026-02-28T06:45",
+                    "2026-03-01T06:43",
+                    "2026-03-02T06:41",
+                    "2026-03-03T06:39",
+                ],
+                "sunset": [
+                    "2026-02-28T17:52",
+                    "2026-03-01T17:54",
+                    "2026-03-02T17:56",
+                    "2026-03-03T17:58",
+                ],
+            }
         }
-    }).encode()
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_forecast(55.67, 12.56)
@@ -184,6 +204,8 @@ def test_get_forecast_success(mock_urlopen: object) -> None:
     assert result[0]["wind_speed"] == 12.5
     assert result[0]["condition"] == "Partly cloudy"
     assert result[0]["emoji"] == "\u26c5"
+    assert result[0]["sunrise"] == "2026-02-28T06:45"
+    assert result[0]["sunset"] == "2026-02-28T17:52"
     assert result[2]["condition"] == "Slight rain"
     assert result[2]["emoji"] == "\U0001f327\ufe0f"
     assert result[3]["condition"] == "Mainly clear"
@@ -222,7 +244,10 @@ def test_kmh_to_mph() -> None:
 def test_format_weather_fahrenheit() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -237,7 +262,10 @@ def test_format_weather_fahrenheit() -> None:
 def test_format_weather_mph() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -252,7 +280,10 @@ def test_format_weather_mph() -> None:
 def test_format_weather_defaults_unchanged() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -262,3 +293,59 @@ def test_format_weather_defaults_unchanged() -> None:
     assert "km/h" in result
     assert "12.5" in result
     assert "15.3" in result
+
+
+def test_extract_time_normal() -> None:
+    from weather import extract_time
+
+    assert extract_time("2026-03-25T06:12") == "06:12"
+    assert extract_time("2026-03-25T18:45") == "18:45"
+
+
+def test_extract_time_empty() -> None:
+    from weather import extract_time
+
+    assert extract_time("") == "\u2014"
+
+
+def test_extract_time_no_t_separator() -> None:
+    from weather import extract_time
+
+    assert extract_time("2026-03-25") == "\u2014"
+
+
+def test_format_weather_with_sunrise_sunset() -> None:
+    location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
+    weather = WeatherData(
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
+        emoji="\u26c5",
+    )
+
+    result = format_weather(
+        location,
+        weather,
+        sunrise="2026-03-25T06:12",
+        sunset="2026-03-25T18:45",
+    )
+
+    assert "Sunrise: 06:12" in result
+    assert "Sunset: 18:45" in result
+
+
+def test_format_weather_without_sunrise_sunset() -> None:
+    location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
+    weather = WeatherData(
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
+        emoji="\u26c5",
+    )
+
+    result = format_weather(location, weather)
+
+    assert "Sunrise" not in result
+    assert "Sunset" not in result

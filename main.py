@@ -1,13 +1,16 @@
 import argparse
 import sys
 
-from weather import format_weather, get_location, get_weather
+from weather import format_weather, get_forecast, get_location, get_weather
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Display current weather for your location.")
+    parser = argparse.ArgumentParser(
+        description="Display current weather for your location."
+    )
     parser.add_argument(
-        "-f", "--fahrenheit",
+        "-f",
+        "--fahrenheit",
         action="store_true",
         help="display temperature in Fahrenheit instead of Celsius",
     )
@@ -27,12 +30,30 @@ def main() -> None:
     weather = get_weather(location["lat"], location["lon"])
     if weather is None:
         print("Could not retrieve weather data.")
-        print("The weather service may be temporarily unavailable. Please try again later.")
+        print(
+            "The weather service may be temporarily unavailable. Please try again later."
+        )
         sys.exit(1)
+
+    sunrise = ""
+    sunset = ""
+    forecasts = get_forecast(location["lat"], location["lon"])
+    if forecasts:
+        sunrise = forecasts[0].get("sunrise", "")
+        sunset = forecasts[0].get("sunset", "")
 
     temp_unit = "F" if args.fahrenheit else "C"
     wind_unit = "mph" if args.mph else "kmh"
-    print(format_weather(location, weather, temp_unit=temp_unit, wind_unit=wind_unit))
+    print(
+        format_weather(
+            location,
+            weather,
+            temp_unit=temp_unit,
+            wind_unit=wind_unit,
+            sunrise=sunrise,
+            sunset=sunset,
+        )
+    )
 
 
 if __name__ == "__main__":

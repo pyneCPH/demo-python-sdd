@@ -288,6 +288,8 @@
                         '<div class="day-details">' +
                             '<div class="day-detail"><span class="day-detail-label">Humidity</span><span class="day-detail-value">' + escapeHtml(String(f.humidity)) + '%</span></div>' +
                             '<div class="day-detail"><span class="day-detail-label">Wind</span><span class="day-detail-value">' + escapeHtml(String(wind)) + ' ' + windLabel + '</span></div>' +
+                            '<div class="day-detail"><span class="day-detail-label">\uD83C\uDF05 Sunrise</span><span class="day-detail-value">' + escapeHtml(f.sunrise ? f.sunrise.split("T")[1] || "\u2014" : "\u2014") + '</span></div>' +
+                            '<div class="day-detail"><span class="day-detail-label">\uD83C\uDF07 Sunset</span><span class="day-detail-value">' + escapeHtml(f.sunset ? f.sunset.split("T")[1] || "\u2014" : "\u2014") + '</span></div>' +
                         '</div>' +
                     '</div>';
             }
