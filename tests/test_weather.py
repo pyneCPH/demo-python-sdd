@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 from weather import (
     CITIES,
-    DailyForecast,
     LocationData,
     WeatherData,
     celsius_to_fahrenheit,
@@ -59,13 +58,15 @@ def test_weather_emoji_unknown_code() -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_location_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "status": "success",
-        "city": "Copenhagen",
-        "country": "Denmark",
-        "lat": 55.67,
-        "lon": 12.56,
-    }).encode()
+    response_data = json.dumps(
+        {
+            "status": "success",
+            "city": "Copenhagen",
+            "country": "Denmark",
+            "lat": 55.67,
+            "lon": 12.56,
+        }
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_location()
@@ -96,14 +97,16 @@ def test_get_location_network_error(mock_urlopen: object) -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_weather_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "current": {
-            "temperature_2m": 12.5,
-            "relative_humidity_2m": 72.0,
-            "wind_speed_10m": 15.3,
-            "weather_code": 2,
+    response_data = json.dumps(
+        {
+            "current": {
+                "temperature_2m": 12.5,
+                "relative_humidity_2m": 72.0,
+                "wind_speed_10m": 15.3,
+                "weather_code": 2,
+            }
         }
-    }).encode()
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_weather(55.67, 12.56)
@@ -127,7 +130,10 @@ def test_get_weather_failure(mock_urlopen: object) -> None:
 def test_format_weather() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -144,7 +150,7 @@ def test_format_weather() -> None:
 
 def test_get_cities_returns_all() -> None:
     cities = get_cities()
-    assert len(cities) == 8
+    assert len(cities) == 23
     for city in cities:
         assert "city" in city
         assert "country" in city
@@ -155,22 +161,38 @@ def test_get_cities_returns_all() -> None:
 def test_get_cities_returns_copy() -> None:
     cities = get_cities()
     cities.pop()
-    assert len(get_cities()) == 8
-    assert len(CITIES) == 8
+    assert len(get_cities()) == 23
+    assert len(CITIES) == 23
+
+
+def test_cities_have_valid_coordinates() -> None:
+    cities = get_cities()
+    names: list[str] = []
+    for city in cities:
+        assert "city" in city
+        assert "country" in city
+        assert "lat" in city
+        assert "lon" in city
+        assert -90 <= city["lat"] <= 90
+        assert -180 <= city["lon"] <= 180
+        names.append(city["city"])
+    assert len(names) == len(set(names)), "Duplicate city names found"
 
 
 @patch("weather.urllib.request.urlopen")
 def test_get_forecast_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "daily": {
-            "time": ["2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03"],
-            "temperature_2m_max": [8.2, 10.1, 7.5, 9.3],
-            "temperature_2m_min": [3.1, 4.2, 2.8, 3.9],
-            "relative_humidity_2m_mean": [75.0, 68.0, 80.0, 72.0],
-            "wind_speed_10m_max": [12.5, 8.3, 15.7, 10.1],
-            "weather_code": [2, 3, 61, 1],
+    response_data = json.dumps(
+        {
+            "daily": {
+                "time": ["2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03"],
+                "temperature_2m_max": [8.2, 10.1, 7.5, 9.3],
+                "temperature_2m_min": [3.1, 4.2, 2.8, 3.9],
+                "relative_humidity_2m_mean": [75.0, 68.0, 80.0, 72.0],
+                "wind_speed_10m_max": [12.5, 8.3, 15.7, 10.1],
+                "weather_code": [2, 3, 61, 1],
+            }
         }
-    }).encode()
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_forecast(55.67, 12.56)
@@ -222,7 +244,10 @@ def test_kmh_to_mph() -> None:
 def test_format_weather_fahrenheit() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -237,7 +262,10 @@ def test_format_weather_fahrenheit() -> None:
 def test_format_weather_mph() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -252,7 +280,10 @@ def test_format_weather_mph() -> None:
 def test_format_weather_defaults_unchanged() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 

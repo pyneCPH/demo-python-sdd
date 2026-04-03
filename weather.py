@@ -59,10 +59,10 @@ WEATHER_CODES: dict[int, str] = {
 
 
 WEATHER_EMOJIS: dict[int, str] = {
-    0: "\u2600\ufe0f",       # Clear sky
-    1: "\U0001f324\ufe0f",   # Mainly clear
-    2: "\u26c5",             # Partly cloudy
-    3: "\u2601\ufe0f",       # Overcast
+    0: "\u2600\ufe0f",  # Clear sky
+    1: "\U0001f324\ufe0f",  # Mainly clear
+    2: "\u26c5",  # Partly cloudy
+    3: "\u2601\ufe0f",  # Overcast
     45: "\U0001f32b\ufe0f",  # Foggy
     48: "\U0001f32b\ufe0f",  # Depositing rime fog
     51: "\U0001f326\ufe0f",  # Light drizzle
@@ -71,20 +71,20 @@ WEATHER_EMOJIS: dict[int, str] = {
     61: "\U0001f327\ufe0f",  # Slight rain
     63: "\U0001f327\ufe0f",  # Moderate rain
     65: "\U0001f327\ufe0f",  # Heavy rain
-    66: "\U0001f9ca",        # Light freezing rain
-    67: "\U0001f9ca",        # Heavy freezing rain
-    71: "\u2744\ufe0f",      # Slight snowfall
-    73: "\u2744\ufe0f",      # Moderate snowfall
-    75: "\u2744\ufe0f",      # Heavy snowfall
-    77: "\u2744\ufe0f",      # Snow grains
+    66: "\U0001f9ca",  # Light freezing rain
+    67: "\U0001f9ca",  # Heavy freezing rain
+    71: "\u2744\ufe0f",  # Slight snowfall
+    73: "\u2744\ufe0f",  # Moderate snowfall
+    75: "\u2744\ufe0f",  # Heavy snowfall
+    77: "\u2744\ufe0f",  # Snow grains
     80: "\U0001f327\ufe0f",  # Slight rain showers
     81: "\U0001f327\ufe0f",  # Moderate rain showers
     82: "\U0001f327\ufe0f",  # Violent rain showers
     85: "\U0001f328\ufe0f",  # Slight snow showers
     86: "\U0001f328\ufe0f",  # Heavy snow showers
-    95: "\u26c8\ufe0f",      # Thunderstorm
-    96: "\u26c8\ufe0f",      # Thunderstorm with slight hail
-    99: "\u26c8\ufe0f",      # Thunderstorm with heavy hail
+    95: "\u26c8\ufe0f",  # Thunderstorm
+    96: "\u26c8\ufe0f",  # Thunderstorm with slight hail
+    99: "\u26c8\ufe0f",  # Thunderstorm with heavy hail
 }
 
 
@@ -97,6 +97,21 @@ CITIES: list[LocationData] = [
     LocationData(city="São Paulo", country="Brazil", lat=-23.55, lon=-46.63),
     LocationData(city="Dubai", country="United Arab Emirates", lat=25.20, lon=55.27),
     LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56),
+    LocationData(city="Bangkok", country="Thailand", lat=13.76, lon=100.50),
+    LocationData(city="Beijing", country="China", lat=39.90, lon=116.40),
+    LocationData(city="Berlin", country="Germany", lat=52.52, lon=13.41),
+    LocationData(city="Buenos Aires", country="Argentina", lat=-34.60, lon=-58.38),
+    LocationData(city="Cairo", country="Egypt", lat=30.04, lon=31.24),
+    LocationData(city="Istanbul", country="Turkey", lat=41.01, lon=28.98),
+    LocationData(city="Jakarta", country="Indonesia", lat=-6.21, lon=106.85),
+    LocationData(city="Lagos", country="Nigeria", lat=6.52, lon=3.38),
+    LocationData(city="Lima", country="Peru", lat=-12.05, lon=-77.04),
+    LocationData(city="Mexico City", country="Mexico", lat=19.43, lon=-99.13),
+    LocationData(city="Moscow", country="Russia", lat=55.76, lon=37.62),
+    LocationData(city="Mumbai", country="India", lat=19.08, lon=72.88),
+    LocationData(city="Nairobi", country="Kenya", lat=-1.29, lon=36.82),
+    LocationData(city="Seoul", country="South Korea", lat=37.57, lon=126.98),
+    LocationData(city="Toronto", country="Canada", lat=43.65, lon=-79.38),
 ]
 
 
@@ -177,15 +192,17 @@ def get_forecast(lat: float, lon: float) -> list[DailyForecast] | None:
         forecasts: list[DailyForecast] = []
         for i in range(len(daily["time"])):
             code = daily["weather_code"][i]
-            forecasts.append(DailyForecast(
-                date=daily["time"][i],
-                temperature_max=daily["temperature_2m_max"][i],
-                temperature_min=daily["temperature_2m_min"][i],
-                humidity=daily["relative_humidity_2m_mean"][i],
-                wind_speed=daily["wind_speed_10m_max"][i],
-                condition=describe_weather(code),
-                emoji=weather_emoji(code),
-            ))
+            forecasts.append(
+                DailyForecast(
+                    date=daily["time"][i],
+                    temperature_max=daily["temperature_2m_max"][i],
+                    temperature_min=daily["temperature_2m_min"][i],
+                    humidity=daily["relative_humidity_2m_mean"][i],
+                    wind_speed=daily["wind_speed_10m_max"][i],
+                    condition=describe_weather(code),
+                    emoji=weather_emoji(code),
+                )
+            )
         return forecasts
     except Exception:
         return None
