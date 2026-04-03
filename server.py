@@ -1,4 +1,5 @@
 import json
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
@@ -8,7 +9,10 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
 class WeatherHandler(BaseHTTPRequestHandler):
+    _start_time: float
+
     def do_GET(self) -> None:
+        self._start_time = time.perf_counter()
         if self.path == "/":
             self._serve_index()
         elif self.path == "/api/weather":
@@ -39,7 +43,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if location is None:
             self._send_json(
                 502,
-                {"error": "Could not determine your location. Please check your internet connection and try again."},
+                {
+                    "error": "Could not determine your location. Please check your internet connection and try again."
+                },
             )
             return
 
@@ -47,7 +53,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if weather is None:
             self._send_json(
                 502,
-                {"error": "Could not retrieve weather data. The weather service may be temporarily unavailable."},
+                {
+                    "error": "Could not retrieve weather data. The weather service may be temporarily unavailable."
+                },
             )
             return
 
@@ -57,7 +65,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         location = get_location()
         cities = get_cities()
         detected: dict[str, object] | None = dict(location) if location else None
-        self._send_json(200, {"cities": [dict(c) for c in cities], "detected": detected})
+        self._send_json(
+            200, {"cities": [dict(c) for c in cities], "detected": detected}
+        )
 
     def _serve_forecast_api(self) -> None:
         from urllib.parse import parse_qs, urlparse
@@ -95,6 +105,12 @@ class WeatherHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/plain")
         self.end_headers()
         self.wfile.write(b"Not Found")
+
+    def end_headers(self) -> None:
+        if hasattr(self, "_start_time"):
+            elapsed_ms = (time.perf_counter() - self._start_time) * 1000
+            self.send_header("X-Response-Time", f"{elapsed_ms:.3f}")
+        super().end_headers()
 
     def log_message(self, format: str, *args: object) -> None:
         # Suppress default stderr logging during normal operation
