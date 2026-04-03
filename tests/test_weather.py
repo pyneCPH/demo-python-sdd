@@ -144,7 +144,7 @@ def test_format_weather() -> None:
 
 def test_get_cities_returns_all() -> None:
     cities = get_cities()
-    assert len(cities) == 8
+    assert len(cities) == 13
     for city in cities:
         assert "city" in city
         assert "country" in city
@@ -155,8 +155,8 @@ def test_get_cities_returns_all() -> None:
 def test_get_cities_returns_copy() -> None:
     cities = get_cities()
     cities.pop()
-    assert len(get_cities()) == 8
-    assert len(CITIES) == 8
+    assert len(get_cities()) == 13
+    assert len(CITIES) == 13
 
 
 @patch("weather.urllib.request.urlopen")
