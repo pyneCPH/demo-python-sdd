@@ -9,6 +9,7 @@ from weather import (
     WeatherData,
     celsius_to_fahrenheit,
     describe_weather,
+    format_forecast,
     format_weather,
     get_cities,
     get_forecast,
@@ -59,13 +60,15 @@ def test_weather_emoji_unknown_code() -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_location_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "status": "success",
-        "city": "Copenhagen",
-        "country": "Denmark",
-        "lat": 55.67,
-        "lon": 12.56,
-    }).encode()
+    response_data = json.dumps(
+        {
+            "status": "success",
+            "city": "Copenhagen",
+            "country": "Denmark",
+            "lat": 55.67,
+            "lon": 12.56,
+        }
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_location()
@@ -96,14 +99,16 @@ def test_get_location_network_error(mock_urlopen: object) -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_weather_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "current": {
-            "temperature_2m": 12.5,
-            "relative_humidity_2m": 72.0,
-            "wind_speed_10m": 15.3,
-            "weather_code": 2,
+    response_data = json.dumps(
+        {
+            "current": {
+                "temperature_2m": 12.5,
+                "relative_humidity_2m": 72.0,
+                "wind_speed_10m": 15.3,
+                "weather_code": 2,
+            }
         }
-    }).encode()
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_weather(55.67, 12.56)
@@ -127,7 +132,10 @@ def test_get_weather_failure(mock_urlopen: object) -> None:
 def test_format_weather() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -161,16 +169,18 @@ def test_get_cities_returns_copy() -> None:
 
 @patch("weather.urllib.request.urlopen")
 def test_get_forecast_success(mock_urlopen: object) -> None:
-    response_data = json.dumps({
-        "daily": {
-            "time": ["2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03"],
-            "temperature_2m_max": [8.2, 10.1, 7.5, 9.3],
-            "temperature_2m_min": [3.1, 4.2, 2.8, 3.9],
-            "relative_humidity_2m_mean": [75.0, 68.0, 80.0, 72.0],
-            "wind_speed_10m_max": [12.5, 8.3, 15.7, 10.1],
-            "weather_code": [2, 3, 61, 1],
+    response_data = json.dumps(
+        {
+            "daily": {
+                "time": ["2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03"],
+                "temperature_2m_max": [8.2, 10.1, 7.5, 9.3],
+                "temperature_2m_min": [3.1, 4.2, 2.8, 3.9],
+                "relative_humidity_2m_mean": [75.0, 68.0, 80.0, 72.0],
+                "wind_speed_10m_max": [12.5, 8.3, 15.7, 10.1],
+                "weather_code": [2, 3, 61, 1],
+            }
         }
-    }).encode()
+    ).encode()
     mock_urlopen.return_value = MockResponse(response_data)  # type: ignore[attr-defined]
 
     result = get_forecast(55.67, 12.56)
@@ -222,7 +232,10 @@ def test_kmh_to_mph() -> None:
 def test_format_weather_fahrenheit() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -237,7 +250,10 @@ def test_format_weather_fahrenheit() -> None:
 def test_format_weather_mph() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -252,7 +268,10 @@ def test_format_weather_mph() -> None:
 def test_format_weather_defaults_unchanged() -> None:
     location = LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56)
     weather = WeatherData(
-        temperature=12.5, humidity=72.0, wind_speed=15.3, condition="Partly cloudy",
+        temperature=12.5,
+        humidity=72.0,
+        wind_speed=15.3,
+        condition="Partly cloudy",
         emoji="\u26c5",
     )
 
@@ -262,3 +281,72 @@ def test_format_weather_defaults_unchanged() -> None:
     assert "km/h" in result
     assert "12.5" in result
     assert "15.3" in result
+
+
+SAMPLE_LOCATION = LocationData(
+    city="Copenhagen", country="Denmark", lat=55.67, lon=12.56
+)
+SAMPLE_FORECASTS: list[DailyForecast] = [
+    DailyForecast(
+        date="2026-03-31",
+        temperature_max=10.0,
+        temperature_min=3.0,
+        humidity=75.0,
+        wind_speed=12.5,
+        condition="Partly cloudy",
+        emoji="\u26c5",
+    ),
+    DailyForecast(
+        date="2026-04-01",
+        temperature_max=8.0,
+        temperature_min=2.0,
+        humidity=80.0,
+        wind_speed=18.0,
+        condition="Slight rain",
+        emoji="\U0001f327\ufe0f",
+    ),
+]
+
+
+def test_format_forecast_default_units() -> None:
+    result = format_forecast(SAMPLE_LOCATION, SAMPLE_FORECASTS)
+
+    assert "Forecast for Copenhagen, Denmark" in result
+    assert "2026-03-31" in result
+    assert "2026-04-01" in result
+    assert "3.0\u00b0C" in result
+    assert "10.0\u00b0C" in result
+    assert "12.5 km/h" in result
+    assert "18.0 km/h" in result
+    assert "75.0%" in result
+    assert "\u26c5 Partly cloudy" in result
+    assert "\U0001f327\ufe0f Slight rain" in result
+
+
+def test_format_forecast_fahrenheit() -> None:
+    result = format_forecast(SAMPLE_LOCATION, SAMPLE_FORECASTS, temp_unit="F")
+
+    assert "\u00b0F" in result
+    assert "50.0" in result  # 10.0°C = 50.0°F
+    assert "37.4" in result  # 3.0°C = 37.4°F
+    assert "12.5 km/h" in result  # wind unchanged
+
+
+def test_format_forecast_mph() -> None:
+    result = format_forecast(SAMPLE_LOCATION, SAMPLE_FORECASTS, wind_unit="mph")
+
+    assert "mph" in result
+    assert "7.8" in result  # 12.5 km/h = 7.8 mph
+    assert "11.2" in result  # 18.0 km/h = 11.2 mph
+    assert "10.0\u00b0C" in result  # temp unchanged
+
+
+def test_format_forecast_fahrenheit_and_mph() -> None:
+    result = format_forecast(
+        SAMPLE_LOCATION, SAMPLE_FORECASTS, temp_unit="F", wind_unit="mph"
+    )
+
+    assert "\u00b0F" in result
+    assert "mph" in result
+    assert "50.0" in result  # 10.0°C = 50.0°F
+    assert "7.8" in result  # 12.5 km/h = 7.8 mph
