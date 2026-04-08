@@ -2,7 +2,13 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-from weather import get_cities, get_forecast, get_location, get_weather
+from weather import (
+    get_cities,
+    get_dashboard_data,
+    get_forecast,
+    get_location,
+    get_weather,
+)
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
@@ -15,6 +21,8 @@ class WeatherHandler(BaseHTTPRequestHandler):
             self._serve_weather_api()
         elif self.path == "/api/cities":
             self._serve_cities_api()
+        elif self.path == "/api/dashboard":
+            self._serve_dashboard_api()
         elif self.path.startswith("/api/forecast"):
             self._serve_forecast_api()
         else:
@@ -39,7 +47,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if location is None:
             self._send_json(
                 502,
-                {"error": "Could not determine your location. Please check your internet connection and try again."},
+                {
+                    "error": "Could not determine your location. Please check your internet connection and try again."
+                },
             )
             return
 
@@ -47,7 +57,9 @@ class WeatherHandler(BaseHTTPRequestHandler):
         if weather is None:
             self._send_json(
                 502,
-                {"error": "Could not retrieve weather data. The weather service may be temporarily unavailable."},
+                {
+                    "error": "Could not retrieve weather data. The weather service may be temporarily unavailable."
+                },
             )
             return
 
@@ -57,7 +69,36 @@ class WeatherHandler(BaseHTTPRequestHandler):
         location = get_location()
         cities = get_cities()
         detected: dict[str, object] | None = dict(location) if location else None
-        self._send_json(200, {"cities": [dict(c) for c in cities], "detected": detected})
+        self._send_json(
+            200, {"cities": [dict(c) for c in cities], "detected": detected}
+        )
+
+    def _serve_dashboard_api(self) -> None:
+        cities = get_cities()
+        result = []
+        for city in cities:
+            data = get_dashboard_data(city["lat"], city["lon"])
+            if data is None:
+                result.append(
+                    {
+                        "city": dict(city),
+                        "current": None,
+                        "history": [],
+                        "forecast": [],
+                    }
+                )
+            else:
+                result.append(
+                    {
+                        "city": dict(city),
+                        "current": dict(data["current"])
+                        if data["current"] is not None
+                        else None,
+                        "history": [dict(h) for h in data["history"]],
+                        "forecast": [dict(f) for f in data["forecast"]],
+                    }
+                )
+        self._send_json(200, {"cities": result})
 
     def _serve_forecast_api(self) -> None:
         from urllib.parse import parse_qs, urlparse

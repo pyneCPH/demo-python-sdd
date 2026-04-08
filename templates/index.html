@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather</title>
+    <title>European Weather Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
@@ -13,372 +13,432 @@
         body {
             font-family: "JetBrains Mono", "Courier New", Courier, monospace;
             background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
             padding: 2rem 1rem;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
+        h1 {
             text-align: center;
-        }
-
-        .city-selector {
-            margin-bottom: 1rem;
-        }
-
-        .city-selector select {
-            font-family: inherit;
-            font-size: 1.1rem;
-            padding: 0.5rem 1rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #fff;
-            color: #333;
-            cursor: pointer;
-            min-width: 250px;
-        }
-
-        .unit-toggles {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #222;
             margin-bottom: 1.5rem;
+            letter-spacing: 0.03em;
         }
 
-        .toggle-group {
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .city-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .city-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .city-country {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: -0.4rem;
+        }
+
+        .current-section {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.6rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
         }
 
-        .toggle-group span.toggle-label {
-            font-size: 0.8rem;
-            color: #999;
-            margin-right: 0.25rem;
-        }
-
-        .toggle-btn {
-            font-size: 0.85rem;
-            padding: 0.3rem 0.65rem;
-            border: 1px solid #ddd;
-            background: #fff;
-            color: #666;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-        }
-
-        .toggle-btn:first-of-type {
-            border-radius: 6px 0 0 6px;
-        }
-
-        .toggle-btn:last-of-type {
-            border-radius: 0 6px 6px 0;
-        }
-
-        .toggle-btn.active {
-            background: #333;
-            color: #fff;
-            border-color: #333;
-        }
-
-        .forecast-row {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .day-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem 1.25rem;
-            flex: 1 1 160px;
-            max-width: 200px;
-            min-width: 150px;
-            text-align: center;
-        }
-
-        .day-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.75rem;
-        }
-
-        .day-temp {
-            font-size: 1.5rem;
-            font-weight: 300;
-            color: #111;
-            margin-bottom: 0.25rem;
-        }
-
-        .day-emoji {
+        .current-emoji {
             font-size: 2rem;
             line-height: 1;
-            margin-bottom: 0.25rem;
         }
 
-        .day-condition {
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 1rem;
+        .current-temp {
+            font-size: 1.6rem;
+            font-weight: 300;
+            color: #111;
         }
 
-        .day-details {
-            border-top: 1px solid #eee;
-            padding-top: 0.75rem;
+        .current-condition {
+            font-size: 0.75rem;
+            color: #777;
         }
 
-        .day-detail {
+        .current-metrics {
             display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            margin-bottom: 0.25rem;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: #555;
+            padding-top: 0.1rem;
         }
 
-        .day-detail-label {
-            color: #999;
+        .metric-label {
+            color: #aaa;
+            margin-right: 0.15rem;
         }
 
-        .day-detail-value {
+        .unavailable {
+            font-size: 0.85rem;
+            color: #bbb;
+            padding: 0.5rem 0;
+        }
+
+        /* History / Forecast tables */
+        .section-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #aaa;
+            margin-top: 0.4rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .day-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .day-row {
+            display: grid;
+            grid-template-columns: 3.5rem 1fr 2.8rem 2.4rem;
+            gap: 0.25rem;
+            font-size: 0.72rem;
+            color: #444;
+            align-items: center;
+        }
+
+        .day-row.history-row {
+            color: #888;
+        }
+
+        .day-date {
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .day-row.history-row .day-date {
+            color: #aaa;
+        }
+
+        .day-temps {
             color: #333;
         }
 
-        .loading {
-            color: #999;
-            font-size: 1rem;
-            padding: 2rem;
+        .day-pressure {
+            color: #666;
+            text-align: right;
         }
 
-        .error {
+        .day-precip {
+            color: #5a9fd4;
+            text-align: right;
+        }
+
+        /* Chart section */
+        .chart-toggle {
+            font-family: inherit;
+            font-size: 0.7rem;
+            color: #888;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 0.25rem 0.6rem;
+            cursor: pointer;
+            margin-top: 0.25rem;
+            transition: background 0.15s, color 0.15s;
+            align-self: flex-start;
+        }
+
+        .chart-toggle:hover {
+            background: #f5f5f5;
+            color: #444;
+        }
+
+        .chart-container {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.25s ease-out, opacity 0.25s ease-out;
+            opacity: 0;
+        }
+
+        .chart-container.expanded {
+            max-height: 120px;
+            opacity: 1;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 90px;
+            display: block;
+            margin-top: 0.3rem;
+        }
+
+        /* Loading / error states */
+        .loading-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .skeleton-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+            height: 120px;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .page-error {
+            text-align: center;
             color: #c0392b;
-            font-size: 1rem;
-            line-height: 1.5;
+            font-size: 0.95rem;
             padding: 2rem;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+            max-width: 600px;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="city-selector">
-            <select id="city-select" disabled>
-                <option>Loading cities...</option>
-            </select>
-        </div>
-        <div class="unit-toggles">
-            <div class="toggle-group">
-                <span class="toggle-label">Temp</span>
-                <button class="toggle-btn active" data-unit="temp" data-value="C">&deg;C</button>
-                <button class="toggle-btn" data-unit="temp" data-value="F">&deg;F</button>
-            </div>
-            <div class="toggle-group">
-                <span class="toggle-label">Wind</span>
-                <button class="toggle-btn active" data-unit="wind" data-value="kmh">km/h</button>
-                <button class="toggle-btn" data-unit="wind" data-value="mph">mph</button>
-            </div>
-        </div>
-        <div id="forecast-area">
-            <p class="loading">Loading weather data...</p>
-        </div>
-    </div>
+    <h1>European Weather Dashboard</h1>
+    <div id="app"></div>
 
     <script>
-        var citySelect = document.getElementById("city-select");
-        var forecastArea = document.getElementById("forecast-area");
-        var rawForecasts = null;
+        var appEl = document.getElementById("app");
 
-        var tempUnit = localStorage.getItem("tempUnit") || "C";
-        var windUnit = localStorage.getItem("windUnit") || "kmh";
-
-        function initToggles() {
-            var tempBtns = document.querySelectorAll('[data-unit="temp"]');
-            var windBtns = document.querySelectorAll('[data-unit="wind"]');
-            for (var i = 0; i < tempBtns.length; i++) {
-                if (tempBtns[i].getAttribute("data-value") === tempUnit) {
-                    tempBtns[i].classList.add("active");
-                } else {
-                    tempBtns[i].classList.remove("active");
-                }
-            }
-            for (var i = 0; i < windBtns.length; i++) {
-                if (windBtns[i].getAttribute("data-value") === windUnit) {
-                    windBtns[i].classList.add("active");
-                } else {
-                    windBtns[i].classList.remove("active");
-                }
-            }
+        function escHtml(text) {
+            var d = document.createElement("div");
+            d.textContent = String(text);
+            return d.innerHTML;
         }
 
-        document.querySelector(".unit-toggles").addEventListener("click", function(e) {
-            var btn = e.target.closest(".toggle-btn");
-            if (!btn) return;
-            var unit = btn.getAttribute("data-unit");
-            var value = btn.getAttribute("data-value");
-            if (unit === "temp") {
-                tempUnit = value;
-                localStorage.setItem("tempUnit", value);
-            } else {
-                windUnit = value;
-                localStorage.setItem("windUnit", value);
-            }
-            initToggles();
-            if (rawForecasts) {
-                renderForecasts(rawForecasts);
-            }
-        });
-
-        function escapeHtml(text) {
-            var div = document.createElement("div");
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function celsiusToFahrenheit(c) {
-            return (c * 9 / 5 + 32).toFixed(1);
-        }
-
-        function kmhToMph(kmh) {
-            return (kmh * 0.621371).toFixed(1);
-        }
-
-        function getDayLabel(dateStr, index) {
-            if (index === 0) return "Today";
-            if (index === 1) return "Tomorrow";
-            var date = new Date(dateStr + "T00:00:00");
+        function formatDate(isoDate) {
+            // isoDate: "YYYY-MM-DD"
+            var parts = isoDate.split("-");
+            var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            return days[date.getDay()];
+            var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            return days[d.getDay()] + " " + months[d.getMonth()] + " " + d.getDate();
         }
 
-        function renderForecasts(forecasts) {
-            var tempLabel = tempUnit === "F" ? "\u00b0F" : "\u00b0C";
-            var windLabel = windUnit === "mph" ? "mph" : "km/h";
+        function renderDayRow(day, isHistory) {
+            var rowClass = isHistory ? "day-row history-row" : "day-row";
+            return (
+                '<div class="' + rowClass + '">' +
+                    '<span class="day-date">' + escHtml(formatDate(day.date)) + '</span>' +
+                    '<span class="day-temps">' + escHtml(day.temperature_min.toFixed(1)) + '/' + escHtml(day.temperature_max.toFixed(1)) + '°C</span>' +
+                    '<span class="day-pressure">' + escHtml(day.surface_pressure.toFixed(0)) + 'hPa</span>' +
+                    '<span class="day-precip">' + escHtml(day.precipitation_sum.toFixed(1)) + 'mm</span>' +
+                '</div>'
+            );
+        }
 
-            var html = '<div class="forecast-row">';
-            for (var i = 0; i < forecasts.length; i++) {
-                var f = forecasts[i];
-
-                var tMin = f.temperature_min;
-                var tMax = f.temperature_max;
-                var wind = f.wind_speed;
-
-                if (tempUnit === "F") {
-                    tMin = celsiusToFahrenheit(tMin);
-                    tMax = celsiusToFahrenheit(tMax);
-                }
-                if (windUnit === "mph") {
-                    wind = kmhToMph(wind);
-                }
-
-                html +=
-                    '<div class="day-card">' +
-                        '<div class="day-label">' + escapeHtml(getDayLabel(f.date, i)) + '</div>' +
-                        '<div class="day-temp">' + escapeHtml(String(tMin)) + ' / ' + escapeHtml(String(tMax)) + tempLabel + '</div>' +
-                        '<div class="day-emoji">' + escapeHtml(f.emoji || '') + '</div>' +
-                        '<div class="day-condition">' + escapeHtml(f.condition) + '</div>' +
-                        '<div class="day-details">' +
-                            '<div class="day-detail"><span class="day-detail-label">Humidity</span><span class="day-detail-value">' + escapeHtml(String(f.humidity)) + '%</span></div>' +
-                            '<div class="day-detail"><span class="day-detail-label">Wind</span><span class="day-detail-value">' + escapeHtml(String(wind)) + ' ' + windLabel + '</span></div>' +
-                        '</div>' +
-                    '</div>';
+        function buildChartSvg(cityData) {
+            // 7 points: history[0..2].temperature_max, current.temperature, forecast[0..2].temperature_max
+            var points = [];
+            for (var i = 0; i < 3; i++) {
+                points.push(cityData.history.length > i ? cityData.history[i].temperature_max : null);
             }
-            html += '</div>';
-            forecastArea.innerHTML = html;
+            points.push(cityData.current ? cityData.current.temperature : null);
+            for (var i = 0; i < 3; i++) {
+                points.push(cityData.forecast.length > i ? cityData.forecast[i].temperature_max : null);
+            }
+
+            var validVals = points.filter(function(p) { return p !== null; });
+            if (validVals.length < 2) return '<svg class="chart-svg"></svg>';
+
+            var minT = Math.min.apply(null, validVals);
+            var maxT = Math.max.apply(null, validVals);
+            var range = maxT - minT || 1;
+
+            var W = 200, H = 70, PAD = 8;
+            var stepX = (W - PAD * 2) / 6;
+
+            function toX(idx) { return PAD + idx * stepX; }
+            function toY(val) { return PAD + (1 - (val - minT) / range) * (H - PAD * 2); }
+
+            // Build path segments, splitting at null points
+            function buildPath(startIdx, endIdx, pts) {
+                var d = "";
+                var first = true;
+                for (var i = startIdx; i <= endIdx; i++) {
+                    if (pts[i] === null) { first = true; continue; }
+                    if (first) {
+                        d += "M " + toX(i).toFixed(1) + " " + toY(pts[i]).toFixed(1) + " ";
+                        first = false;
+                    } else {
+                        d += "L " + toX(i).toFixed(1) + " " + toY(pts[i]).toFixed(1) + " ";
+                    }
+                }
+                return d;
+            }
+
+            var histPath = buildPath(0, 3, points);  // history + today
+            var forecastPath = buildPath(3, 6, points);  // today + forecast
+
+            // Dots
+            var histDots = "", forecastDots = "";
+            for (var i = 0; i <= 3; i++) {
+                if (points[i] !== null) {
+                    histDots += '<circle cx="' + toX(i).toFixed(1) + '" cy="' + toY(points[i]).toFixed(1) + '" r="2.5" fill="#7b9ec7"/>';
+                }
+            }
+            for (var i = 3; i <= 6; i++) {
+                if (points[i] !== null) {
+                    forecastDots += '<circle cx="' + toX(i).toFixed(1) + '" cy="' + toY(points[i]).toFixed(1) + '" r="2.5" fill="#e07b54"/>';
+                }
+            }
+
+            return (
+                '<svg class="chart-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+                    '<path d="' + histPath + '" fill="none" stroke="#7b9ec7" stroke-width="2" stroke-linejoin="round"/>' +
+                    '<path d="' + forecastPath + '" fill="none" stroke="#e07b54" stroke-width="2" stroke-dasharray="4 3" stroke-linejoin="round"/>' +
+                    histDots + forecastDots +
+                '</svg>'
+            );
         }
 
-        function showError(message) {
-            forecastArea.innerHTML = '<p class="error">' + escapeHtml(message) + '</p>';
+        function renderCityCard(cityData, cardIndex) {
+            var city = cityData.city;
+            var current = cityData.current;
+            var history = cityData.history || [];
+            var forecast = cityData.forecast || [];
+
+            var currentHtml;
+            if (!current) {
+                currentHtml = '<div class="unavailable">Data unavailable</div>';
+            } else {
+                currentHtml = (
+                    '<div class="current-section">' +
+                        '<span class="current-emoji">' + escHtml(current.emoji || "") + '</span>' +
+                        '<div>' +
+                            '<div class="current-temp">' + escHtml(current.temperature.toFixed(1)) + '°C</div>' +
+                            '<div class="current-condition">' + escHtml(current.condition) + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="current-metrics">' +
+                        '<span><span class="metric-label">P</span>' + escHtml(current.surface_pressure.toFixed(0)) + ' hPa</span>' +
+                        '<span><span class="metric-label">Rain</span>' + escHtml(current.precipitation.toFixed(1)) + ' mm</span>' +
+                    '</div>'
+                );
+            }
+
+            var historyHtml = "";
+            if (history.length > 0) {
+                historyHtml = '<div class="section-label">History</div><div class="day-rows">';
+                for (var i = 0; i < history.length; i++) {
+                    historyHtml += renderDayRow(history[i], true);
+                }
+                historyHtml += '</div>';
+            }
+
+            var forecastHtml = "";
+            if (forecast.length > 0) {
+                forecastHtml = '<div class="section-label">Forecast</div><div class="day-rows">';
+                for (var i = 0; i < forecast.length; i++) {
+                    forecastHtml += renderDayRow(forecast[i], false);
+                }
+                forecastHtml += '</div>';
+            }
+
+            var chartSvg = buildChartSvg(cityData);
+            var chartId = "chart-" + cardIndex;
+
+            return (
+                '<div class="city-card">' +
+                    '<div class="city-name">' + escHtml(city.city) + '</div>' +
+                    '<div class="city-country">' + escHtml(city.country) + '</div>' +
+                    currentHtml +
+                    historyHtml +
+                    forecastHtml +
+                    '<button class="chart-toggle" data-chart="' + chartId + '" onclick="toggleChart(this)">&#9650; Temp chart</button>' +
+                    '<div class="chart-container" id="' + chartId + '">' + chartSvg + '</div>' +
+                '</div>'
+            );
+        }
+
+        function toggleChart(btn) {
+            var chartId = btn.getAttribute("data-chart");
+            var container = document.getElementById(chartId);
+            if (container.classList.contains("expanded")) {
+                container.classList.remove("expanded");
+                btn.innerHTML = "&#9650; Temp chart";
+            } else {
+                container.classList.add("expanded");
+                btn.innerHTML = "&#9660; Temp chart";
+            }
         }
 
         function showLoading() {
-            forecastArea.innerHTML = '<p class="loading">Loading forecast...</p>';
+            var html = '<div class="loading-grid">';
+            for (var i = 0; i < 8; i++) {
+                html += '<div class="skeleton-card"></div>';
+            }
+            html += '</div>';
+            appEl.innerHTML = html;
         }
 
-        async function loadForecast(lat, lon) {
-            showLoading();
-            try {
-                var response = await fetch("/api/forecast?lat=" + lat + "&lon=" + lon);
-                var data = await response.json();
-                if (data.error) {
-                    showError(data.error);
-                    return;
-                }
-                if (!data.forecasts || data.forecasts.length === 0) {
-                    showError("No forecast data available.");
-                    return;
-                }
-                rawForecasts = data.forecasts;
-                renderForecasts(rawForecasts);
-            } catch (err) {
-                showError("Unable to load forecast. Please check your connection and try again.");
-            }
-        }
-
-        function onCityChange() {
-            var option = citySelect.options[citySelect.selectedIndex];
-            var lat = option.getAttribute("data-lat");
-            var lon = option.getAttribute("data-lon");
-            if (lat && lon) {
-                loadForecast(lat, lon);
-            }
+        function showError(msg) {
+            appEl.innerHTML = '<p class="page-error">' + escHtml(msg) + '</p>';
         }
 
         async function init() {
-            initToggles();
+            showLoading();
             try {
-                var response = await fetch("/api/cities");
-                var data = await response.json();
-                if (!data.cities || data.cities.length === 0) {
-                    showError("No cities available.");
+                var response = await fetch("/api/dashboard");
+                if (!response.ok) {
+                    showError("Failed to load dashboard data (HTTP " + response.status + ").");
                     return;
                 }
-
-                var cities = data.cities;
-                var detected = data.detected;
-                var selectedIndex = 0;
-
-                // If detected city is not in the list, prepend it
-                if (detected) {
-                    var found = false;
-                    for (var i = 0; i < cities.length; i++) {
-                        if (cities[i].lat === detected.lat && cities[i].lon === detected.lon) {
-                            found = true;
-                            selectedIndex = i;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        cities.unshift(detected);
-                        selectedIndex = 0;
-                    }
+                var data = await response.json();
+                if (!data.cities || data.cities.length === 0) {
+                    showError("No city data returned.");
+                    return;
                 }
-
-                citySelect.innerHTML = "";
-                for (var i = 0; i < cities.length; i++) {
-                    var opt = document.createElement("option");
-                    opt.textContent = cities[i].city + ", " + cities[i].country;
-                    opt.setAttribute("data-lat", cities[i].lat);
-                    opt.setAttribute("data-lon", cities[i].lon);
-                    if (i === selectedIndex) opt.selected = true;
-                    citySelect.appendChild(opt);
+                var html = '<div class="dashboard-grid">';
+                for (var i = 0; i < data.cities.length; i++) {
+                    html += renderCityCard(data.cities[i], i);
                 }
-                citySelect.disabled = false;
-                citySelect.addEventListener("change", onCityChange);
-
-                // Load forecast for initially selected city
-                var initial = cities[selectedIndex];
-                loadForecast(initial.lat, initial.lon);
+                html += '</div>';
+                appEl.innerHTML = html;
             } catch (err) {
-                showError("Unable to load cities. Please check your connection and try again.");
+                showError("Unable to load dashboard. Please check your connection and try again.");
             }
         }
 
