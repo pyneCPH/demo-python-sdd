@@ -251,7 +251,6 @@ def test_api_forecast_service_failure(mock_forecast: object) -> None:
 
 
 MOCK_DASHBOARD_CITY = CityDashboardData(
-    city=LocationData(city="London", country="United Kingdom", lat=51.51, lon=-0.13),
     current=MOCK_WEATHER,
     history=MOCK_FORECASTS[:3],
     forecast=MOCK_FORECASTS[1:4],

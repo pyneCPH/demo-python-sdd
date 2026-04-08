@@ -33,7 +33,6 @@ class DailyForecast(TypedDict):
 
 
 class CityDashboardData(TypedDict):
-    city: LocationData
     current: WeatherData | None
     history: list[DailyForecast]
     forecast: list[DailyForecast]
@@ -257,7 +256,6 @@ def get_dashboard_data(lat: float, lon: float) -> CityDashboardData | None:
         history = all_days[0:3]
         forecast = all_days[4:7]
         return CityDashboardData(
-            city=LocationData(city="", country="", lat=lat, lon=lon),
             current=current_weather,
             history=history,
             forecast=forecast,

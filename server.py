@@ -79,6 +79,11 @@ class WeatherHandler(BaseHTTPRequestHandler):
         for city in cities:
             data = get_dashboard_data(city["lat"], city["lon"])
             if data is None:
+                print(
+                    f"[ERROR] Dashboard fetch failed for {city['city']} "
+                    f"(lat={city['lat']}, lon={city['lon']})",
+                    flush=True,
+                )
                 result.append(
                     {
                         "city": dict(city),

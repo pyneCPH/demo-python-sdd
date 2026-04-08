@@ -257,14 +257,18 @@
             return days[d.getDay()] + " " + months[d.getMonth()] + " " + d.getDate();
         }
 
+        function safeFixed(val, digits) {
+            return (val !== null && val !== undefined) ? val.toFixed(digits) : "—";
+        }
+
         function renderDayRow(day, isHistory) {
             var rowClass = isHistory ? "day-row history-row" : "day-row";
             return (
                 '<div class="' + rowClass + '">' +
                     '<span class="day-date">' + escHtml(formatDate(day.date)) + '</span>' +
-                    '<span class="day-temps">' + escHtml(day.temperature_min.toFixed(1)) + '/' + escHtml(day.temperature_max.toFixed(1)) + '°C</span>' +
-                    '<span class="day-pressure">' + escHtml(day.surface_pressure.toFixed(0)) + 'hPa</span>' +
-                    '<span class="day-precip">' + escHtml(day.precipitation_sum.toFixed(1)) + 'mm</span>' +
+                    '<span class="day-temps">' + escHtml(safeFixed(day.temperature_min, 1)) + '/' + escHtml(safeFixed(day.temperature_max, 1)) + '°C</span>' +
+                    '<span class="day-pressure">' + escHtml(safeFixed(day.surface_pressure, 0)) + 'hPa</span>' +
+                    '<span class="day-precip">' + escHtml(safeFixed(day.precipitation_sum, 1)) + 'mm</span>' +
                 '</div>'
             );
         }
@@ -433,11 +437,17 @@
                 }
                 var html = '<div class="dashboard-grid">';
                 for (var i = 0; i < data.cities.length; i++) {
-                    html += renderCityCard(data.cities[i], i);
+                    try {
+                        html += renderCityCard(data.cities[i], i);
+                    } catch (cardErr) {
+                        console.error("Failed to render city card:", data.cities[i], cardErr);
+                        html += '<div class="city-card"><div class="unavailable">Render error</div></div>';
+                    }
                 }
                 html += '</div>';
                 appEl.innerHTML = html;
             } catch (err) {
+                console.error("Dashboard init failed:", err);
                 showError("Unable to load dashboard. Please check your connection and try again.");
             }
         }
