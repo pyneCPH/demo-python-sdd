@@ -14,6 +14,8 @@ class WeatherData(TypedDict):
     temperature: float
     humidity: float
     wind_speed: float
+    surface_pressure: float
+    precipitation: float
     condition: str
     emoji: str
 
@@ -24,8 +26,16 @@ class DailyForecast(TypedDict):
     temperature_min: float
     humidity: float
     wind_speed: float
+    surface_pressure: float
+    precipitation_sum: float
     condition: str
     emoji: str
+
+
+class CityDashboardData(TypedDict):
+    current: WeatherData | None
+    history: list[DailyForecast]
+    forecast: list[DailyForecast]
 
 
 WEATHER_CODES: dict[int, str] = {
@@ -59,10 +69,10 @@ WEATHER_CODES: dict[int, str] = {
 
 
 WEATHER_EMOJIS: dict[int, str] = {
-    0: "\u2600\ufe0f",       # Clear sky
-    1: "\U0001f324\ufe0f",   # Mainly clear
-    2: "\u26c5",             # Partly cloudy
-    3: "\u2601\ufe0f",       # Overcast
+    0: "\u2600\ufe0f",  # Clear sky
+    1: "\U0001f324\ufe0f",  # Mainly clear
+    2: "\u26c5",  # Partly cloudy
+    3: "\u2601\ufe0f",  # Overcast
     45: "\U0001f32b\ufe0f",  # Foggy
     48: "\U0001f32b\ufe0f",  # Depositing rime fog
     51: "\U0001f326\ufe0f",  # Light drizzle
@@ -71,32 +81,32 @@ WEATHER_EMOJIS: dict[int, str] = {
     61: "\U0001f327\ufe0f",  # Slight rain
     63: "\U0001f327\ufe0f",  # Moderate rain
     65: "\U0001f327\ufe0f",  # Heavy rain
-    66: "\U0001f9ca",        # Light freezing rain
-    67: "\U0001f9ca",        # Heavy freezing rain
-    71: "\u2744\ufe0f",      # Slight snowfall
-    73: "\u2744\ufe0f",      # Moderate snowfall
-    75: "\u2744\ufe0f",      # Heavy snowfall
-    77: "\u2744\ufe0f",      # Snow grains
+    66: "\U0001f9ca",  # Light freezing rain
+    67: "\U0001f9ca",  # Heavy freezing rain
+    71: "\u2744\ufe0f",  # Slight snowfall
+    73: "\u2744\ufe0f",  # Moderate snowfall
+    75: "\u2744\ufe0f",  # Heavy snowfall
+    77: "\u2744\ufe0f",  # Snow grains
     80: "\U0001f327\ufe0f",  # Slight rain showers
     81: "\U0001f327\ufe0f",  # Moderate rain showers
     82: "\U0001f327\ufe0f",  # Violent rain showers
     85: "\U0001f328\ufe0f",  # Slight snow showers
     86: "\U0001f328\ufe0f",  # Heavy snow showers
-    95: "\u26c8\ufe0f",      # Thunderstorm
-    96: "\u26c8\ufe0f",      # Thunderstorm with slight hail
-    99: "\u26c8\ufe0f",      # Thunderstorm with heavy hail
+    95: "\u26c8\ufe0f",  # Thunderstorm
+    96: "\u26c8\ufe0f",  # Thunderstorm with slight hail
+    99: "\u26c8\ufe0f",  # Thunderstorm with heavy hail
 }
 
 
 CITIES: list[LocationData] = [
     LocationData(city="London", country="United Kingdom", lat=51.51, lon=-0.13),
-    LocationData(city="New York", country="United States", lat=40.71, lon=-74.01),
-    LocationData(city="Tokyo", country="Japan", lat=35.68, lon=139.69),
-    LocationData(city="Sydney", country="Australia", lat=-33.87, lon=151.21),
     LocationData(city="Paris", country="France", lat=48.86, lon=2.35),
-    LocationData(city="São Paulo", country="Brazil", lat=-23.55, lon=-46.63),
-    LocationData(city="Dubai", country="United Arab Emirates", lat=25.20, lon=55.27),
-    LocationData(city="Copenhagen", country="Denmark", lat=55.67, lon=12.56),
+    LocationData(city="Berlin", country="Germany", lat=52.52, lon=13.41),
+    LocationData(city="Amsterdam", country="Netherlands", lat=52.37, lon=4.90),
+    LocationData(city="Madrid", country="Spain", lat=40.42, lon=-3.70),
+    LocationData(city="Rome", country="Italy", lat=41.90, lon=12.50),
+    LocationData(city="Warsaw", country="Poland", lat=52.23, lon=21.01),
+    LocationData(city="Stockholm", country="Sweden", lat=59.33, lon=18.07),
 ]
 
 
@@ -142,7 +152,8 @@ def get_weather(lat: float, lon: float) -> WeatherData | None:
         url = (
             f"https://api.open-meteo.com/v1/forecast"
             f"?latitude={lat}&longitude={lon}"
-            f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code"
+            f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m"
+            f",surface_pressure,precipitation,weather_code"
             f"&wind_speed_unit=kmh"
         )
         req = urllib.request.Request(url)
@@ -154,6 +165,8 @@ def get_weather(lat: float, lon: float) -> WeatherData | None:
             temperature=current["temperature_2m"],
             humidity=current["relative_humidity_2m"],
             wind_speed=current["wind_speed_10m"],
+            surface_pressure=current["surface_pressure"],
+            precipitation=current["precipitation"],
             condition=describe_weather(code),
             emoji=weather_emoji(code),
         )
@@ -167,7 +180,8 @@ def get_forecast(lat: float, lon: float) -> list[DailyForecast] | None:
             f"https://api.open-meteo.com/v1/forecast"
             f"?latitude={lat}&longitude={lon}"
             f"&daily=temperature_2m_max,temperature_2m_min"
-            f",relative_humidity_2m_mean,wind_speed_10m_max,weather_code"
+            f",relative_humidity_2m_mean,wind_speed_10m_max"
+            f",surface_pressure_mean,precipitation_sum,weather_code"
             f"&wind_speed_unit=kmh&forecast_days=4"
         )
         req = urllib.request.Request(url)
@@ -177,16 +191,75 @@ def get_forecast(lat: float, lon: float) -> list[DailyForecast] | None:
         forecasts: list[DailyForecast] = []
         for i in range(len(daily["time"])):
             code = daily["weather_code"][i]
-            forecasts.append(DailyForecast(
-                date=daily["time"][i],
-                temperature_max=daily["temperature_2m_max"][i],
-                temperature_min=daily["temperature_2m_min"][i],
-                humidity=daily["relative_humidity_2m_mean"][i],
-                wind_speed=daily["wind_speed_10m_max"][i],
-                condition=describe_weather(code),
-                emoji=weather_emoji(code),
-            ))
+            forecasts.append(
+                DailyForecast(
+                    date=daily["time"][i],
+                    temperature_max=daily["temperature_2m_max"][i],
+                    temperature_min=daily["temperature_2m_min"][i],
+                    humidity=daily["relative_humidity_2m_mean"][i],
+                    wind_speed=daily["wind_speed_10m_max"][i],
+                    surface_pressure=daily["surface_pressure_mean"][i],
+                    precipitation_sum=daily["precipitation_sum"][i],
+                    condition=describe_weather(code),
+                    emoji=weather_emoji(code),
+                )
+            )
         return forecasts
+    except Exception:
+        return None
+
+
+def get_dashboard_data(lat: float, lon: float) -> CityDashboardData | None:
+    try:
+        url = (
+            f"https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat}&longitude={lon}"
+            f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m"
+            f",surface_pressure,precipitation,weather_code"
+            f"&daily=temperature_2m_max,temperature_2m_min"
+            f",relative_humidity_2m_mean,wind_speed_10m_max"
+            f",surface_pressure_mean,precipitation_sum,weather_code"
+            f"&past_days=3&forecast_days=4&wind_speed_unit=kmh"
+        )
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode())
+        current = data["current"]
+        code = current["weather_code"]
+        current_weather = WeatherData(
+            temperature=current["temperature_2m"],
+            humidity=current["relative_humidity_2m"],
+            wind_speed=current["wind_speed_10m"],
+            surface_pressure=current["surface_pressure"],
+            precipitation=current["precipitation"],
+            condition=describe_weather(code),
+            emoji=weather_emoji(code),
+        )
+        daily = data["daily"]
+        all_days: list[DailyForecast] = []
+        for i in range(len(daily["time"])):
+            day_code = daily["weather_code"][i]
+            all_days.append(
+                DailyForecast(
+                    date=daily["time"][i],
+                    temperature_max=daily["temperature_2m_max"][i],
+                    temperature_min=daily["temperature_2m_min"][i],
+                    humidity=daily["relative_humidity_2m_mean"][i],
+                    wind_speed=daily["wind_speed_10m_max"][i],
+                    surface_pressure=daily["surface_pressure_mean"][i],
+                    precipitation_sum=daily["precipitation_sum"][i],
+                    condition=describe_weather(day_code),
+                    emoji=weather_emoji(day_code),
+                )
+            )
+        # daily[0:3] = past 3 days (history), daily[3] = today, daily[4:7] = forecast
+        history = all_days[0:3]
+        forecast = all_days[4:7]
+        return CityDashboardData(
+            current=current_weather,
+            history=history,
+            forecast=forecast,
+        )
     except Exception:
         return None
 
